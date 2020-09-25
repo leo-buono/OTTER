@@ -125,6 +125,8 @@ bool loadShaders() {
 	glAttachShader(shader_program, vs);
 	glLinkProgram(shader_program);
 
+
+
 	return true;
 }
 
