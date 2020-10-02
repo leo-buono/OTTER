@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream> //03
 #include <string> //03
+#include <GLM/glm.hpp>//04
+#include <GLM/gtc/matrix_transform.hpp>//04
 
 GLFWwindow* window;
 
@@ -13,7 +15,7 @@ bool initGLFW() {
 	}
 
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "Cringe Ass Nae Nae Baby", nullptr, nullptr);
+	window = glfwCreateWindow(800, 800, "100748457 - Leo Buono", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	return true;
@@ -74,8 +76,19 @@ bool loadShaders() {
 	return true;
 }
 
+GLfloat rotateY = 0;
 
-
+void keyboard() 
+{
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+	{
+		rotateY += 0.01f;
+	}
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	{
+		rotateY -= 0.01f;
+	}
+}
 
 int main() {
 	//Initialize GLFW
@@ -89,9 +102,9 @@ int main() {
 	//// Lecture 3 starts here
 
 	static const GLfloat points[] = {
-		-0.5f, -0.5f, 0.5f,
-		0.5f, -0.5f, 0.5f,
-		-0.5f, 0.5f, 0.5f
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		0.0f, 0.5f, 0.f
 	};
 
 	static const GLfloat colors[] = {
@@ -127,10 +140,42 @@ int main() {
 	if (!loadShaders())
 		return 1;
 
+	//Starts here Lec 4
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+
+	//projection matrix - 45 degrees fov, ratio, range 0.1 - 100 units
+	glm::mat4 projection = glm::perspective(glm::radians(45.f),
+		(float)width / (float)height, 0.1f, 100.f);
+	
+	//Camera - position, looks at origin, which way is up for the camera
+	glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+	//Model matrix -> identity matrix (all ones, so nothing changes)
+	glm::mat4 model = glm::mat4(1.f);
+
+	model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+	model = glm::rotate(model, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+	model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f));
+
+	// T * R * S <- from the right, scales, then rotates, then translates.
+
+	glm::mat4 mvp = projection * view * model;
+
+	//handle for mvp matrix
+	GLuint matrixID = glGetUniformLocation(shader_program, "MVP");
+
+
+
+
 	// GL states
 	glEnable(GL_DEPTH_TEST);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	//glEnable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_FRONT);
 
 	///// Game loop /////
 	while (!glfwWindowShouldClose(window)) {
@@ -140,6 +185,17 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shader_program);
+
+		//Lecture 4
+		model = glm::mat4(1.f);
+		keyboard();
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+		model = glm::rotate(model, glm::radians(rotateY), glm::vec3(0.f, 0.f, 1.f));
+
+		mvp = projection * view * model;
+		//rotateY = 0.f;
+
+		glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvp[0][0]);
 		
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
