@@ -65,7 +65,8 @@ bool initGLFW() {
 	}
 
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
+	//Last_first_ID
+	window = glfwCreateWindow(800, 800, "Buono_Léo_100748457", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Set our window resized callback
@@ -135,18 +136,30 @@ int main() {
 
 	static const uint16_t indices[] = {
 		0, 1, 2,
-		1, 3, 2
+		1, 3, 2,
+		3, 1, 0
 	};
 	IndexBuffer::sptr interleaved_ibo = IndexBuffer::Create();
-	interleaved_ibo->LoadData(indices, 3 * 2);
+	interleaved_ibo->LoadData(indices, 3 * 3);
 
-	size_t stride = sizeof(float) * 6;
+	size_t stride = sizeof(float) * 9;
 	VertexArrayObject::sptr vao2 = VertexArrayObject::Create();
 	vao2->AddVertexBuffer(interleaved_vbo, {
 		BufferAttribute(0, 3, GL_FLOAT, false, stride, 0),
-		BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3),
+		BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3)
 	});
 	vao2->SetIndexBuffer(interleaved_ibo);
+
+	VertexArrayObject::sptr vao3 = VertexArrayObject::Create();
+	vao3->AddVertexBuffer(interleaved_vbo,
+		{
+			BufferAttribute(0, 3, GL_FLOAT, false, stride, 0),
+			BufferAttribute(1, 3, GL_FLOAT, false, stride, sizeof(float) * 3)
+		}
+	);
+	vao3->SetIndexBuffer(interleaved_ibo);
+
+
 
 	// Load our shaders
 	Shader::sptr shader = Shader::Create();
@@ -162,6 +175,7 @@ int main() {
 	//GLint xTransformLoc = glGetUniformLocation(shader->GetHandle(), "u_ModelViewProjection");
 	glm::mat4 transform = glm::mat4(1.0f);
 	glm::mat4 transform2 = glm::mat4(1.0f);
+	glm::mat4 transform3 = glm::mat4(1.f);	
 
 	Camera::sptr camera = Camera::Create();
 	camera->SetPosition(glm::vec3(0, 1, -1));
@@ -179,6 +193,7 @@ int main() {
 		float dt = static_cast<float>(thisFrame - lastFrame);
 		transform = glm::rotate(glm::mat4(1.0f), static_cast<float>(thisFrame), glm::vec3(0, 0, 1));
 		transform2 = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.0f, glm::sin(static_cast<float>(thisFrame))));
+		transform3 = glm::translate(glm::mat4(1.f), glm::vec3(glm::sin(static_cast<float>(thisFrame)), 0.f, 0.f));
 
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -194,7 +209,12 @@ int main() {
 		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform2);
 		vao2->Bind();
 		glDrawElements(GL_TRIANGLES, interleaved_ibo->GetElementCount(), interleaved_ibo->GetElementType(), nullptr);
-		vao->UnBind();
+		vao2->UnBind();
+
+		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform3);
+		vao3->Bind();
+		glDrawElements(GL_TRIANGLES, interleaved_ibo->GetElementCount(), interleaved_ibo->GetElementType(), nullptr);
+		vao3->UnBind();
 
 		glfwSwapBuffers(window);
 	}
