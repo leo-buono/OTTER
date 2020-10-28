@@ -13,7 +13,9 @@ Camera::Camera() :
 	_view(glm::mat4(1.0f)),
 	_projection(glm::mat4(1.0f)),
 	_viewProjection(glm::mat4(1.0f)),
-	_isDirty(true)
+	_isDirty(true),
+	_cameraType(CAMERA_PERSPECTIVE),
+	_halfHeight(2.5f)
 {
 	__CalculateProjection();
 }
@@ -29,7 +31,7 @@ void Camera::SetForward(const glm::vec3& forward) {
 }
 
 void Camera::LookAt(const glm::vec3& point) {
-	_normal = -glm::normalize(_position - point);
+	_normal = glm::normalize(point - _position);
 	__CalculateView();
 }
 
@@ -52,9 +54,14 @@ void Camera::SetFovDegrees(float value) {
 	SetFovRadians(glm::radians(value));
 }
 
+void Camera::ChangePerspective(bool cameraType)
+{
+	_cameraType = cameraType;
+	__CalculateProjection();
+}
+
 const glm::mat4& Camera::GetViewProjection() const {
 	// TODO: implement
-	//return glm::mat4(1.0f);
 	if (_isDirty) {
 		_viewProjection = _projection * _view;
 		_isDirty = false;
@@ -65,7 +72,15 @@ const glm::mat4& Camera::GetViewProjection() const {
 void Camera::__CalculateProjection()
 {
 	// TODO: implement
-	_projection = glm::perspective(_fovRadians, _aspectRatio, _nearPlane, _farPlane);
+	if (_cameraType == CAMERA_PERSPECTIVE)
+	{
+		_projection = glm::perspective(_fovRadians, _aspectRatio, _nearPlane, _farPlane);
+	}
+	else if (_cameraType == CAMERA_ORTHO)
+	{
+		_projection = glm::ortho(-_halfHeight * _aspectRatio, _halfHeight * _aspectRatio,
+			-_halfHeight, _halfHeight, _nearPlane, _farPlane);
+	}
 	_isDirty = true;
 }
 

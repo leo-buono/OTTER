@@ -122,36 +122,57 @@ void Shader::Bind() {
 void Shader::UnBind() {
 	glUseProgram(0);
 }
-void Shader::SetUniformMatrix(int location, const glm::mat3* value, int count, bool transposed) {
+
+void Shader::SetUniformMatrix(int location, const glm::mat3* value, int count, bool transposed)
+{
 	glProgramUniformMatrix3fv(_handle, location, count, transposed, glm::value_ptr(*value));
 }
-void Shader::SetUniformMatrix(int location, const glm::mat4* value, int count, bool transposed) {
+
+void Shader::SetUniformMatrix(int location, const glm::mat4* value, int count, bool transposed)
+{
 	glProgramUniformMatrix4fv(_handle, location, count, transposed, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const float* value, int count) {
+
+void Shader::SetUniform(int location, const float* value, int count)
+{
 	glProgramUniform1fv(_handle, location, count, value);
 }
-void Shader::SetUniform(int location, const glm::vec2* value, int count) {
+
+void Shader::SetUniform(int location, const glm::vec2* value, int count)
+{
 	glProgramUniform2fv(_handle, location, count, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const glm::vec3* value, int count) {
+
+void Shader::SetUniform(int location, const glm::vec3* value, int count)
+{
 	glProgramUniform3fv(_handle, location, count, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const glm::vec4* value, int count) {
+
+void Shader::SetUniform(int location, const glm::vec4* value, int count)
+{
 	glProgramUniform4fv(_handle, location, count, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const int* value, int count) {
+
+void Shader::SetUniform(int location, const int* value, int count)
+{
 	glProgramUniform1iv(_handle, location, count, value);
 }
-void Shader::SetUniform(int location, const glm::ivec2* value, int count) {
+
+void Shader::SetUniform(int location, const glm::ivec2* value, int count)
+{
 	glProgramUniform2iv(_handle, location, count, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const glm::ivec3* value, int count) {
+
+void Shader::SetUniform(int location, const glm::ivec3* value, int count)
+{
 	glProgramUniform3iv(_handle, location, count, glm::value_ptr(*value));
 }
-void Shader::SetUniform(int location, const glm::ivec4* value, int count) {
+
+void Shader::SetUniform(int location, const glm::ivec4* value, int count)
+{
 	glProgramUniform4iv(_handle, location, count, glm::value_ptr(*value));
 }
+
 void Shader::SetUniform(int location, const bool* value, int count) {
 	LOG_ASSERT(count == 1, "SetUniform for bools only supports setting single values at a time!");
 	glProgramUniform1i(location, *value, 1);
@@ -168,6 +189,7 @@ void Shader::SetUniform(int location, const glm::bvec4* value, int count) {
 	LOG_ASSERT(count == 1, "SetUniform for bools only supports setting single values at a time!");
 	glProgramUniform4i(location, value->x, value->y, value->z, value->w, 1);
 }
+
 int Shader::__GetUniformLocation(const std::string& name) {
 	// Search the map for the given name
 	std::unordered_map<std::string, int>::const_iterator it = _uniformLocs.find(name);
@@ -185,4 +207,3 @@ int Shader::__GetUniformLocation(const std::string& name) {
 
 	return result;
 }
-

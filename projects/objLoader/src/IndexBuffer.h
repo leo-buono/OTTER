@@ -11,16 +11,17 @@ class IndexBuffer : public IBuffer
 {
 public:
 	typedef std::shared_ptr<IndexBuffer> sptr;
-	IndexBuffer(GLenum usage = GL_STATIC_DRAW) : IBuffer(GL_ELEMENT_ARRAY_BUFFER, usage), _elementType(GL_NONE) { }
+
 	static inline sptr Create(GLenum usage = GL_STATIC_DRAW) {
 		return std::make_shared<IndexBuffer>(usage);
 	}
 
-public:
 	/// <summary>
 	/// Creates a new index buffer, with the given usage. Data will still need to be uploaded before it can be used
 	/// </summary>
 	/// <param name="usage">The usage hint for the buffer, default is GL_STATIC_DRAW</param>
+	IndexBuffer(GLenum usage = GL_STATIC_DRAW) : 
+		IBuffer(GL_ELEMENT_ARRAY_BUFFER, usage), _elementType(GL_NONE) { }
 
 	// We'll override the LoadData to force users to use our overload that takes in the element type as well
 	inline void LoadData(const void* data, size_t elementSize, size_t elementCount) override {

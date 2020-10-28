@@ -1,13 +1,13 @@
 #pragma once
+#include <string>
 #include <glad/glad.h>
-#include<memory>
+#include <memory>
 
-#include <string> // for std::string
-#include <unordered_map> // for std::unordered_map
-#include <GLM/glm.hpp> // for our GLM types
-#include <GLM/gtc/type_ptr.hpp> // for glm::value_ptr
-#include "Logging.h" // for the logging functions
-
+#include <string>				// for std::string
+#include <unordered_map>		// for std::unordered_map
+#include <GLM/glm.hpp>			// for our GLM types
+#include <GLM/gtc/type_ptr.hpp>	// for glm::value_ptr
+#include "Logging.h"			// for the logging functions
 
 /// <summary>
 /// This class will wrap around an OpenGL shader program
@@ -19,7 +19,7 @@ public:
 	static inline sptr Create() {
 		return std::make_shared<Shader>();
 	}
-public:
+
 	// We'll disallow moving and copying, since we want to manually control when the destructor is called
 	// We'll use these classes via pointers
 	Shader(const Shader& other) = delete;
@@ -70,6 +70,7 @@ public:
 	/// Gets the underlying OpenGL handle that this class is wrapping
 	/// </summary>
 	GLuint GetHandle() const { return _handle; }
+
 	template <typename T>
 	void SetUniform(const std::string& name, const T& value) {
 		int location = __GetUniformLocation(name);
@@ -80,6 +81,7 @@ public:
 			LOG_WARN("Ignoring uniform \"{}\"", name);
 		}
 	}
+
 	template <typename T>
 	void SetUniformMatrix(const std::string& name, const T& value, bool transposed = false) {
 		int location = __GetUniformLocation(name);
@@ -90,7 +92,7 @@ public:
 			LOG_WARN("Ignoring uniform \"{}\"", name);
 		}
 	}
-public:
+
 	void SetUniformMatrix(int location, const glm::mat3* value, int count = 1, bool transposed = false);
 	void SetUniformMatrix(int location, const glm::mat4* value, int count = 1, bool transposed = false);
 	void SetUniform(int location, const float* value, int count = 1);
@@ -105,7 +107,8 @@ public:
 	void SetUniform(int location, const glm::bvec2* value, int count = 1);
 	void SetUniform(int location, const glm::bvec3* value, int count = 1);
 	void SetUniform(int location, const glm::bvec4* value, int count = 1);
-	
+
+
 protected:
 	GLuint _vs;
 	GLuint _fs;
@@ -113,5 +116,6 @@ protected:
 	GLuint _handle;
 
 	std::unordered_map<std::string, int> _uniformLocs;
+
 	int __GetUniformLocation(const std::string& name);
 };

@@ -26,7 +26,8 @@ void VertexArrayObject::SetIndexBuffer(const IndexBuffer::sptr& ibo) {
 	UnBind();
 }
 
-void VertexArrayObject::AddVertexBuffer(const VertexBuffer::sptr& buffer, const std::vector<BufferAttribute>& attributes) {
+void VertexArrayObject::AddVertexBuffer(const VertexBuffer::sptr& buffer, const std::vector<BufferAttribute>& attributes)
+{
 	// TODO: Who should own this buffer now? Do we delete it when we destroy?
 	VertexBufferBinding binding;
 	binding.Buffer = buffer;
