@@ -6,6 +6,7 @@ layout(location = 2) in vec3 inNormal;
 layout(location = 3) in vec2 inUV;
 
 uniform sampler2D s_Diffuse;
+uniform sampler2D s_Other;
 uniform sampler2D s_Specular;
 
 uniform vec3  u_AmbientCol;
@@ -21,6 +22,8 @@ uniform float u_Shininess;
 uniform float u_LightAttenuationConstant;
 uniform float u_LightAttenuationLinear;
 uniform float u_LightAttenuationQuadratic;
+
+uniform float u_TextureMix;
 
 uniform vec3  u_CamPos;
 
@@ -50,16 +53,18 @@ void main() {
 	vec3 h        = normalize(lightDir + viewDir);
 
 	// Get the specular power from the specular map
-	float texSpec = 1.0f;
+	float texSpec = texture(s_Specular, inUV).x;
 	float spec = pow(max(dot(N, h), 0.0), u_Shininess); // Shininess coefficient (can be a uniform)
 	vec3 specular = u_SpecularLightStrength * texSpec * spec * u_LightCol; // Can also use a specular color
 
 	// Get the albedo from the diffuse / albedo map
-	vec4 textureColor = vec4(1.0f);
+	vec4 textureColor = texture(s_Diffuse, inUV);
+	vec4 textureColor2 = texture(s_Other, inUV);
+	vec4 mixResult = mix(textureColor, textureColor2, u_TextureMix);
 	vec3 result = (
 		(u_AmbientCol * u_AmbientStrength) + // global ambient light
 		(ambient + diffuse + specular) * attenuation // light factors from our single light
-		) * inColor * textureColor.rgb; // Object color
+		) * inColor * mixResult.rgb; // Object color
 
-	frag_color = vec4(result, textureColor.a);
+	frag_color = vec4(result, mixResult.a);
 }

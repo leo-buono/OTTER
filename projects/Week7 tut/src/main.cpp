@@ -231,7 +231,9 @@ struct Material
 {
 	Texture2D::sptr Albedo;
 	Texture2D::sptr Specular;
+	Texture2D::sptr otherT;
 	float           Shininess;
+	float	        TextureMix;
 };
 
 int main() {
@@ -381,8 +383,51 @@ int main() {
 	vaos[3] = vao3;
 
 	// TODO: load textures
+	// Load our texture data from a file
+	Texture2DData::sptr diffuseMap = Texture2DData::LoadFromFile("images/Stone_001_Diffuse.png");
+	Texture2DData::sptr otherMap = Texture2DData::LoadFromFile("images/box.bmp");
+	Texture2DData::sptr specularMap = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
+	// Create a texture from the data
+	Texture2D::sptr diffuse = Texture2D::Create();
+	diffuse->LoadData(diffuseMap);
+	Texture2D::sptr otherT = Texture2D::Create();
+	otherT->LoadData(otherMap);
+	Texture2D::sptr specular = Texture2D::Create();
+	specular->LoadData(specularMap);
+	// Creating an empty texture
+	Texture2DDescription desc = Texture2DDescription();
+	desc.Width = 1;
+	desc.Height = 1;
+	desc.Format = InternalFormat::RGB8;
+	Texture2D::sptr texture2 = Texture2D::Create(desc);
+	texture2->Clear();
 
 	// TODO: store some info about our materials for each object
+	// We'll use a temporary lil structure to store some info about our material (we'll expand this later)
+	Material materials[4];
+	materials[0].Albedo = diffuse;
+	materials[0].Specular = specular;
+	materials[0].otherT = otherT;
+	materials[0].Shininess = 4.0f;
+	materials[0].TextureMix = 0.5f;
+
+	materials[1].Albedo = diffuse;
+	materials[1].Specular = specular;
+	materials[1].otherT = otherT;
+	materials[1].Shininess = 16.0f;
+	materials[1].TextureMix = 0.6f;
+
+	materials[2].Albedo = diffuse;
+	materials[2].Specular = specular;
+	materials[2].otherT = otherT;
+	materials[2].Shininess = 32.0f;
+	materials[2].TextureMix = 0.7f;
+
+	materials[3].Albedo = diffuse;
+	materials[3].Specular = specular;
+	materials[3].otherT = otherT;
+	materials[3].Shininess = 64.0f;
+	materials[3].TextureMix = 0.86f;
 	
 	camera = Camera::Create();
 	camera->SetPosition(glm::vec3(0, 3, 3)); // Set initial position
@@ -448,10 +493,17 @@ int main() {
 		// Tell OpenGL that slot 0 will hold the diffuse, and slot 1 will hold the specular
 		shader->SetUniform("s_Diffuse",  0);
 		shader->SetUniform("s_Specular", 1); 
+		shader->SetUniform("s_Other", 2);
 		
 		// Render all VAOs in our scene
 		for(int ix = 0; ix < 4; ix++) {
 			// TODO: Apply materials
+			// Apply material properties for each instance
+			materials[ix].Albedo->Bind(0);
+			materials[ix].Specular->Bind(1);
+			materials[ix].otherT->Bind(2);
+			shader->SetUniform("u_Shininess", materials[ix].Shininess);
+			shader->SetUniform("u_TextureMix", materials[ix].TextureMix);
 			RenderVAO(shader, vaos[ix], camera, transforms[ix]);			
 		}
 
