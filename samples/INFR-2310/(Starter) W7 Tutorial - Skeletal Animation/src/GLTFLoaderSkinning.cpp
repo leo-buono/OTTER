@@ -236,6 +236,26 @@ namespace nou::GLTF
 		for (size_t i = 0; i < skin.joints.size(); ++i)
 		{
 			//TODO: Complete!
+			int j_id = skin.joints[i];
+
+			//we get our current joint
+			Joint& joint = skeleton[jointLookup[j_id]];
+
+			//we're getting the node represent our joint in the gltf file
+			const tinygltf::Node& node = gltf.nodes[j_id];
+
+			for (size_t j = 0; j < node.children.size(); j++)
+			{
+				auto it = jointLookup.find(node.children[j]);
+
+				if (it != jointLookup.end())
+				{
+					skeleton[it->second].m_parent = true;
+					skeleton[it->second].m_parentInd = jointLookup[j_id];
+					joint.m_childrenInd.push_back(it->second);
+					
+				}
+			}
 		}
 
 		skeleton.DoFK();
@@ -357,7 +377,26 @@ namespace nou::GLTF
 				case ChannelType::POSITION:
 
 				//TODO: Complete this!
+					data->posFrames = static_cast<int>(keyGetter.len);
+					data->posKeys.resize(keyGetter.len);
+					data->posTimes.resize(keyGetter.len);
 
+					for (size_t k = 0; k < timeGetter.len && keyGetter.len; ++k)
+					{
+						float fTime;
+						glm::vec3 pos;
+						memcpy(&fTime, &timeGetter.data[k * timeGetter.stride], sizeof(float));
+						if (fTime > maxTime)
+						{
+							maxTime = fTime;
+						}
+
+						memcpy(&pos, &keyGetter.data[k * keyGetter.stride], sizeof(glm::vec3));
+
+						data->posKeys[k] = pos;
+						data->posTimes[k] = fTime;
+
+					}
 				break;
 
 				//Extract frame time as a float and rotation keyframes as quats.
