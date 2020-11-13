@@ -331,7 +331,9 @@ int main() {
 
 		// Load some textures from files
 		Texture2D::sptr diffuse = Texture2D::LoadFromFile("images/Stone_001_Diffuse.png");
+		//lol nope
 		Texture2D::sptr diffuse2 = Texture2D::LoadFromFile("images/box.bmp");
+		//This one is actually being used.
 		Texture2D::sptr textureRound2 = Texture2D::LoadFromFile("images/box.bmp.png");
 
 		Texture2D::sptr specular = Texture2D::LoadFromFile("images/Stone_001_Specular.png"); 
