@@ -11,7 +11,7 @@ Week 9 Tutorial Sample - Created for INFR 2310 at Ontario Tech.
 #include "NOU/GLTFLoader.h"
 
 #include "CSkinnedMeshRenderer.h"
-#include "CAnimator.h"
+#include "CAnimator.h" 
 #include "GLTFLoaderSkinning.h"
 
 #include "Logging.h"

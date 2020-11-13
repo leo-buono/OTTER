@@ -96,7 +96,7 @@ bool initGLFW() {
 #endif
 	
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
+	window = glfwCreateWindow(800, 800, "Buono_Leo_100748457", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Set our window resized callback
@@ -332,11 +332,13 @@ int main() {
 		// Load some textures from files
 		Texture2D::sptr diffuse = Texture2D::LoadFromFile("images/Stone_001_Diffuse.png");
 		Texture2D::sptr diffuse2 = Texture2D::LoadFromFile("images/box.bmp");
+		Texture2D::sptr textureRound2 = Texture2D::LoadFromFile("images/box.bmp.png");
+
 		Texture2D::sptr specular = Texture2D::LoadFromFile("images/Stone_001_Specular.png"); 
 
 		// Load the cube map
-		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
-		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg"); 
+		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
+		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg"); 
 
 		// Creating an empty texture
 		Texture2DDescription desc = Texture2DDescription();
@@ -365,15 +367,15 @@ int main() {
 		auto renderGroup = scene->Registry().group<RendererComponent, Transform>();
 
 		// Create a material and set some properties for it
-		ShaderMaterial::sptr material0 = ShaderMaterial::Create();  
+		ShaderMaterial::sptr material0 = ShaderMaterial::Create();   
 		material0->Shader = shader;
 		material0->Set("s_Diffuse", diffuse);
 		material0->Set("s_Diffuse2", diffuse2);
 		material0->Set("s_Specular", specular);
-		material0->Set("u_Shininess", 8.0f);
+		material0->Set("u_Shininess", 8.0f); 
 		material0->Set("u_TextureMix", 0.5f); 
 
-		// Load a second material for our reflective material!
+		// Load a second material for our reflective material! 
 		Shader::sptr reflectiveShader = Shader::Create();
 		reflectiveShader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
 		reflectiveShader->LoadShaderPartFromFile("shaders/frag_reflection.frag.glsl", GL_FRAGMENT_SHADER);
@@ -382,6 +384,9 @@ int main() {
 		ShaderMaterial::sptr reflectiveMat = ShaderMaterial::Create();
 		reflectiveMat->Shader = reflectiveShader;
 		reflectiveMat->Set("s_Environment", environmentMap);
+		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+			glm::vec3(1, 0, 0))));
+		reflectiveMat->Set("s_textureRound2", textureRound2);
 		// TODO: send the rotation to apply to the skybox
 
 		GameObject sceneObj = scene->CreateEntity("scene_geo");
@@ -469,6 +474,8 @@ int main() {
 			skyboxMat->Shader = skybox;  
 			skyboxMat->Set("s_Environment", environmentMap);
 			// TODO: send the rotation to apply to the skybox
+			skyboxMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+				glm::vec3(1, 0, 0))));
 			skyboxMat->RenderLayer = 100;
 
 			MeshBuilder<VertexPosNormTexCol> mesh;
@@ -483,7 +490,7 @@ int main() {
 		////////////////////////////////////////////////////////////////////////////////////////
 
 		// We'll use a vector to store all our key press events for now (this should probably be a behaviour eventually)
-		std::vector<KeyPressWatcher> keyToggles;
+		std::vector<KeyPressWatcher> keyToggles;  
 		{
 			// This is an example of a key press handling helper. Look at InputHelpers.h an .cpp to see
 			// how this is implemented. Note that the ampersand here is capturing the variables within
@@ -521,14 +528,14 @@ int main() {
 		Timing& time = Timing::Instance();
 		time.LastFrame = glfwGetTime();
 
-		///// Game loop /////
+		///// Game loop ///// 
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 
 			// Update the timing
 			time.CurrentFrame = glfwGetTime();
 			time.DeltaTime = static_cast<float>(time.CurrentFrame - time.LastFrame);
-
+			 
 			time.DeltaTime = time.DeltaTime > 1.0f ? 1.0f : time.DeltaTime;
 
 			// Update our FPS tracker data
@@ -552,13 +559,13 @@ int main() {
 				// Iterate over all the behaviour scripts attached to the entity, and update them in sequence (if enabled)
 				for (const auto& behaviour : binding.Behaviours) {
 					if (behaviour->Enabled) {
-						behaviour->Update(entt::handle(scene->Registry(), entity));
+						behaviour->Update(entt::handle(scene->Registry(), entity));  
 					}
 				}
 			});
 
 			// Clear the screen
-			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
+			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);  
 			glEnable(GL_DEPTH_TEST);
 			glClearDepth(1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -609,8 +616,8 @@ int main() {
 			});
 
 			// Draw our ImGui content
-			RenderImGui();
-
+			RenderImGui(); 
+			 
 			scene->Poll();
 			glfwSwapBuffers(window);
 			time.LastFrame = time.CurrentFrame;

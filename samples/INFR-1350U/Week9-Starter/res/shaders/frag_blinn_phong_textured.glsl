@@ -29,7 +29,7 @@ uniform vec3  u_CamPos;
 
 out vec4 frag_color;
 
-// https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
+// https://learnopengl.com/Advanced-Lighting/Advanced-Lighting 
 void main() {
 	// Lecture 5
 	vec3 ambient = u_AmbientLightStrength * u_LightCol;
@@ -66,6 +66,7 @@ void main() {
 		(u_AmbientCol * u_AmbientStrength) + // global ambient light
 		(ambient + diffuse + specular) * attenuation // light factors from our single light
 		) * inColor * textureColor.rgb; // Object color
+
 
 	frag_color = vec4(result, textureColor.a);
 }
