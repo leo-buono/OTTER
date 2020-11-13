@@ -55,7 +55,19 @@ namespace nou
 		//TODO: Implement this function!
 		//(You will be REPLACING what is here,
 		//not just adding to it.)
+		for (size_t i = 0; i < m_anim.data.size(); i++)
+		{
+			JointPose& pose = m_result[m_anim.data[i].jointInd];
 
+			if (m_anim.data[i].posFrames > 0)
+			{
+				pose.pos = m_anim.data[i].posKeys[0];
+			}
+			if (m_anim.data[i].rotFrames > 0)
+			{
+				pose.rotation = m_anim.data[i].rotKeys[0];
+			}
+		}
 	}
 
 	void SkeletalAnimClip::Apply(Skeleton& skeleton)
