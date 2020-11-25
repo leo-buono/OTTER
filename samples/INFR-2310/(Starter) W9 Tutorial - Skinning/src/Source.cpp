@@ -86,8 +86,13 @@ int main()
 	jointEntity.transform.m_scale = glm::vec3(0.05f, 0.05f, 0.05f);
 	
 	//To spin our boi every frame. 
-	float anglePerSecond = 30.0f;
-
+	float anglePerSecond = 30.0f; 
+	char* playPause = "Pause";
+	char* loopText = "Is Looping";
+	bool reset = false;
+	bool isPlaying = true;
+	bool isLooping = true;
+	float multiplierAmount = 1.f;
 	App::Tick();
 
 	while (!App::IsClosing() && !Input::GetKey(GLFW_KEY_ESCAPE))
@@ -104,7 +109,12 @@ int main()
 		boiEntity.transform.RecomputeGlobal();
 
 		//Update the animator, and draw the boi.
-		boiEntity.Get<CAnimator>().Update(deltaTime);
+		boiEntity.Get<CAnimator>().Update(deltaTime, isPlaying, isLooping, reset, multiplierAmount);
+		//making reset not stop the player for the next frame
+		if (reset)
+		{
+			reset = !reset;
+		}
 		boiEntity.Get<CSkinnedMeshRenderer>().Draw();
 
 		//As a debug utility/demo: Draw our joints.
@@ -133,13 +143,47 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		App::StartImgui();
-
 		//Put any ImGUI code you need in here.
+		if (ImGui::Button(playPause))
+		{
+			if (isPlaying)
+			{
+				playPause = "Play";
+			}
+			else 
+			{
+				playPause = "Pause";
+			}
+			isPlaying = !isPlaying;
+		}
+		if (ImGui::Button(loopText))
+		{
+			if (isLooping)
+			{
+				loopText = "Is not Looping";
+			}
+			else 
+			{
+				loopText = "Is Looping";
+			}
+
+			isLooping = !isLooping;
+		}
+		if (ImGui::Button("Reset animation"))
+		{
+			reset = !reset;
+		}
+		if (ImGui::SliderFloat("Multiplier", &multiplierAmount, 0.01f, 4.00f))
+		{
+
+		}
+		ImGui::Text("If looping disabled, Have it playing, then hit reset.");
 		//(Don't forget to call Imgui::Begin and Imgui::End!)
 
 		App::EndImgui();
 
 		App::SwapBuffers();
+
 	}
 
 	App::Cleanup();

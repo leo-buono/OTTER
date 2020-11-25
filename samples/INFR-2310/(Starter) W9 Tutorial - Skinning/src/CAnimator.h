@@ -27,7 +27,7 @@ namespace nou
 
 		SkeletalAnimClip* GetClip();
 
-		void Update(float deltaTime);
+		void Update(float deltaTime, bool, bool, bool, float);
 
 		protected:
 

@@ -60,7 +60,7 @@ namespace nou
 		~SkeletalAnimClip() = default;
 
 		//Update this node's animation.
-		void Update(float deltaTime, const Skeleton& skeleton);
+		void Update(float deltaTime, const Skeleton& skeleton, bool, bool, float);
 		//Apply the output of this node to a skeleton.
 		void Apply(Skeleton& skeleton);
 
@@ -73,6 +73,10 @@ namespace nou
 		//Which frame indices we are on for each joint.
 		std::vector<int> m_rotFrame;
 		std::vector<int> m_posFrame;
+
+		//bool hold thing
+		bool m_isLooping = true;
+
 
 		//The result of our animation update.
 		std::vector<JointPose> m_result;

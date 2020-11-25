@@ -27,13 +27,16 @@ namespace nou
 		return m_clip.get();
 	}
 
-	void CAnimator::Update(float deltaTime)
+	void CAnimator::Update(float deltaTime, bool isPlay = true, bool loop = false, bool reset = false, float mult = 1.f)
 	{
 		CSkinnedMeshRenderer& rend = m_owner->Get<CSkinnedMeshRenderer>();
 		Skeleton& skeleton = rend.GetSkeleton();
 
-		m_clip->Update(deltaTime, skeleton);
-		m_clip->Apply(skeleton);
+		if (isPlay)
+		{
+			m_clip->Update(deltaTime, skeleton, loop, reset, mult);
+			m_clip->Apply(skeleton);
+		}
 		skeleton.DoFK();
 		rend.UpdateJointMatrices();
 	}

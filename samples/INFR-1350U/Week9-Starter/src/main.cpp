@@ -552,7 +552,7 @@ int main() {
 				// Note that since we want to make sure we don't copy our key handlers, we need a const
 				// reference!
 				for (const KeyPressWatcher& watcher : keyToggles) {
-					watcher.Poll(window);
+					watcher.Poll(window); 
 				}
 			}
 

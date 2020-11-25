@@ -50,13 +50,23 @@ namespace nou
 		std::fill(m_posFrame.begin(), m_posFrame.end(), 0);
 	}
 
-	void SkeletalAnimClip::Update(float deltaTime, const Skeleton& skeleton)
+	void SkeletalAnimClip::Update(float deltaTime, const Skeleton& skeleton, bool loop = true, bool reset = false, float multi = 1.f)
 	{
 		//TODO: Complete this function.
+		//probably an easier and less complicated way but eh this works so I am not complaining and this isn't the engine
+		if (m_isLooping == loop)
+		{
+			m_timer += deltaTime * multi;
+		}
+		if (reset)
+		{
+			std::fill(m_rotFrame.begin(), m_rotFrame.end(), 0);
+			std::fill(m_posFrame.begin(), m_posFrame.end(), 0);
+			m_timer = 0.f;
+		}
 		if (m_anim.duration != 0.f)
 		{
-			m_timer += deltaTime;
-			if (m_timer > m_anim.duration)
+			if (m_timer > m_anim.duration && m_isLooping)
 			{
 				std::fill(m_rotFrame.begin(), m_rotFrame.end(), 0);
 				std::fill(m_posFrame.begin(), m_posFrame.end(), 0);
@@ -70,7 +80,7 @@ namespace nou
 
 		UpdateRotations();
 		UpdatePositions();
-
+		m_isLooping = loop;
 	}
 
 	void SkeletalAnimClip::Apply(Skeleton& skeleton)
@@ -106,6 +116,7 @@ namespace nou
 			//that our animation's last frame is the same as its
 			//first (a perfect loop) - this may or may not
 			//be the case depending on how you manage your own animation work.
+
 			while (m_timer > m_anim.data[i].posTimes[m_posFrame[i] 
 				   + static_cast<size_t>(1)]
 				   && m_posFrame[i] < m_anim.data[i].posFrames - 2)
