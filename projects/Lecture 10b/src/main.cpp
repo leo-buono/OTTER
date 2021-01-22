@@ -71,7 +71,7 @@ bool loadShaders() {
 	const char* vs_str = vert_shader_str.c_str();
 
 	std::string frag_shader_str;
-	std::ifstream fs_stream("frag_shader.glsl", std::ios::in);
+	std::ifstream fs_stream("terrain_frag.glsl", std::ios::in);
 	if (fs_stream.is_open()) {
 		std::string Line = "";
 		while (getline(fs_stream, Line))
