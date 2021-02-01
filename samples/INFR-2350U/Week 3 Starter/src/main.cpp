@@ -26,6 +26,7 @@
 #include <CameraControlBehaviour.h>
 #include <FollowPathBehaviour.h>
 #include <SimpleMoveBehaviour.h>
+//#include "Framebuffer.h"
 
 #define NUM_TREES 300
 #define NUM_ROCKS 40
@@ -277,6 +278,19 @@ int main() {
 			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
 		}
 
+		Framebuffer* testBuffer;
+		GameObject framebufferObjext = scene->CreateEntity("Basic Buffer");
+		{
+			int width, height;
+			glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+			testBuffer = &framebufferObjext.emplace<Framebuffer>();
+			testBuffer->AddDepthTarget();
+			testBuffer->AddColorTarget(GL_RGBA);
+			testBuffer->Init(width, height);
+		}
+
+
 		#pragma endregion 
 		//////////////////////////////////////////////////////////////////////////////////////////
 
@@ -379,6 +393,9 @@ int main() {
 			});
 
 			// Clear the screen
+			testBuffer->Clear();
+
+
 			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glClearDepth(1.0f);
@@ -413,6 +430,10 @@ int main() {
 				return false;
 			});
 
+			testBuffer->Bind();
+
+			testBuffer->DrawToBackbuffer(); 
+
 			// Start by assuming no shader or material is applied
 			Shader::sptr current = nullptr;
 			ShaderMaterial::sptr currentMat = nullptr;
@@ -433,6 +454,8 @@ int main() {
 				// Render the mesh
 				BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 			});
+
+			testBuffer->Unbind();
 
 			// Draw our ImGui content
 			BackendHandler::RenderImGui();
