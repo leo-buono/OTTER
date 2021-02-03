@@ -96,7 +96,7 @@ bool InitGLFW() {
 #endif
 	
 	//Create a new GLFW window
-	window = glfwCreateWindow(800, 800, "INFR1350U", nullptr, nullptr);
+	window = glfwCreateWindow(800, 800, "100748457_Léo_Buono", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
 	// Set our window resized callback
@@ -155,6 +155,7 @@ void ShutdownImGui()
 	ImGui::DestroyContext();
 }
 
+
 std::vector<std::function<void()>> imGuiCallbacks;
 void RenderImGui() {
 	// Implementation new frame
@@ -168,9 +169,9 @@ void RenderImGui() {
 		for (auto& func : imGuiCallbacks) {
 			func();
 		}
-		ImGui::End();
 	}
-	
+
+		ImGui::End();
 	// Make sure ImGui knows how big our window is
 	ImGuiIO& io = ImGui::GetIO();
 	int width{ 0 }, height{ 0 };
@@ -213,6 +214,15 @@ void SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, cons
 	shader->SetUniform("u_CamPos", camPos);
 }
 
+bool lightingBool = 1;
+bool ambientBool = 0;
+bool specularBool = 0;
+bool specAmb = 0;
+bool diffuseOn = 0;
+bool LSDEffect = 0;
+
+float timeFromStart = 0;
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -228,7 +238,7 @@ int main() {
 	float fpsBuffer[128];
 	float minFps, maxFps, avgFps;
 	int selectedVao = 0; // select cube by default
-	std::vector<GameObject> controllables;
+	std::vector<GameObject> controllables; 
 
 	// Let OpenGL know that we want debug output, and route it to our handler function
 	glEnable(GL_DEBUG_OUTPUT);
@@ -248,7 +258,7 @@ int main() {
 		shader->Link();
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 2.0f);
-		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
+		glm::vec3 lightCol = glm::vec3(1.0f, 1.0f, 1.0f);
 		float     lightAmbientPow = 0.05f;
 		float     lightSpecularPow = 1.0f;
 		glm::vec3 ambientCol = glm::vec3(1.0f);
@@ -261,17 +271,18 @@ int main() {
 		shader->SetUniform("u_LightPos", lightPos);
 		shader->SetUniform("u_LightCol", lightCol);
 		shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-		shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+		shader->SetUniform("u_SpecularLightStrength", (float)specularBool * lightSpecularPow);
 		shader->SetUniform("u_AmbientCol", ambientCol);
-		shader->SetUniform("u_AmbientStrength", ambientPow);
+		shader->SetUniform("u_AmbientStrength", (int)ambientBool * ambientPow);
 		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
 		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
 		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		shader->SetUniform("u_diffuseStrength", (int)!lightingBool);
 
 		// We'll add some ImGui controls to control our shader
 		imGuiCallbacks.push_back([&]() {
 			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
-			{
+			{ 
 				if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
 					shader->SetUniform("u_AmbientCol", ambientCol);
 				}
@@ -285,12 +296,12 @@ int main() {
 					shader->SetUniform("u_LightPos", lightPos);
 				}
 				if (ImGui::ColorPicker3("Light Col", glm::value_ptr(lightCol))) {
-					shader->SetUniform("u_LightCol", lightCol);
+					shader->SetUniform("u_LightCol", lightCol); 
 				}
 				if (ImGui::SliderFloat("Light Ambient Power", &lightAmbientPow, 0.0f, 1.0f)) {
 					shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
 				}
-				if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) {
+				if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) { 
 					shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
 				}
 				if (ImGui::DragFloat("Light Linear Falloff", &lightLinearFalloff, 0.01f, 0.0f, 1.0f)) {
@@ -299,6 +310,55 @@ int main() {
 				if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
 					shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
 				}
+			}
+			if (ImGui::CollapsingHeader("Assignment 1 thingy mebob"))  
+			{
+				if (ImGui::Checkbox("Lighting Off only", &lightingBool))
+				{
+					ambientBool = false;
+					specularBool = false;
+					specAmb = false;
+					LSDEffect = false;
+					diffuseOn = false; 
+				}
+				shader->SetUniform("u_lightingStrength", (int)!lightingBool);
+				if (ImGui::Checkbox("Ambient Only", &ambientBool)) 
+				{
+					lightingBool = false;
+					specularBool = false;
+					specAmb = false; 
+					LSDEffect = false;
+				}
+				
+				shader->SetUniform("u_AmbientLightStrength", (int)ambientBool * ambientPow);
+				if (ImGui::Checkbox("Specular only", &specularBool))
+				{
+					ambientBool = false;
+					lightingBool = false;
+					specAmb = false;
+					LSDEffect = false;
+				}
+				if (ImGui::Checkbox("Specular + Ambient", &specAmb))
+				{
+					ambientBool = true;
+					specularBool = true;
+					lightingBool = false;
+					LSDEffect = false;
+				}
+				shader->SetUniform("u_SpecularLightStrength", (float)specularBool * lightSpecularPow);
+				if (ImGui::Checkbox("LSD Effect (Custom Effect) + Spec + Amb", &LSDEffect))
+				{
+					ambientBool = true;
+					specAmb = false;
+					lightingBool = false;
+					specularBool = true;
+				}
+				shader->SetUniform("u_EffectBool", (float)LSDEffect);
+				if (ImGui::Checkbox("Diffuse", &diffuseOn)) 
+				{
+				}
+				shader->SetUniform("u_diffuseBool", (int)diffuseOn);
+				
 			}
 
 			auto name = controllables[selectedVao].get<GameObjectTag>().Name;
@@ -330,7 +390,10 @@ int main() {
 		#pragma region TEXTURE LOADING
 
 		// Load some textures from files
-		Texture2D::sptr diffuse = Texture2D::LoadFromFile("images/Stone_001_Diffuse.png");
+		Texture2D::sptr diffuse = Texture2D::LoadFromFile("images/wall.jpg");
+		Texture2D::sptr diffuseWhite = Texture2D::LoadFromFile("images/white.png");
+		Texture2D::sptr diffuseOrange = Texture2D::LoadFromFile("images/orange.png");
+		Texture2D::sptr diffuseRG = Texture2D::LoadFromFile("images/RedGreen.png");
 		Texture2D::sptr diffuse2 = Texture2D::LoadFromFile("images/box.bmp");
 		Texture2D::sptr specular = Texture2D::LoadFromFile("images/Stone_001_Specular.png");
 		Texture2D::sptr reflectivity = Texture2D::LoadFromFile("images/box-reflections.bmp");
@@ -365,7 +428,7 @@ int main() {
 		// We can create a group ahead of time to make iterating on the group faster
 		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup =
 			scene->Registry().group<RendererComponent>(entt::get_t<Transform>());
-
+#pragma region mat 1 and 2
 		// Create a material and set some properties for it
 		ShaderMaterial::sptr material0 = ShaderMaterial::Create();  
 		material0->Shader = shader;
@@ -391,13 +454,13 @@ int main() {
 		material1->Shader = reflective;
 		material1->Set("s_Diffuse", diffuse);
 		material1->Set("s_Diffuse2", diffuse2);
-		material1->Set("s_Specular", specular);
+		material1->Set("s_Specular", specular); 
 		material1->Set("s_Reflectivity", reflectivity); 
 		material1->Set("s_Environment", environmentMap); 
 		material1->Set("u_LightPos", lightPos);
 		material1->Set("u_LightCol", lightCol);
 		material1->Set("u_AmbientLightStrength", lightAmbientPow); 
-		material1->Set("u_SpecularLightStrength", lightSpecularPow); 
+		material1->Set("u_SpecularLightStrength",(float)specularBool *  lightSpecularPow); 
 		material1->Set("u_AmbientCol", ambientCol);
 		material1->Set("u_AmbientStrength", ambientPow);
 		material1->Set("u_LightAttenuationConstant", 1.0f);
@@ -411,67 +474,93 @@ int main() {
 		reflectiveMat->Shader = reflectiveShader;
 		reflectiveMat->Set("s_Environment", environmentMap);
 		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0))));
+#pragma endregion mat 1 and 2
+
+		ShaderMaterial::sptr material2 = ShaderMaterial::Create();
+		material2->Shader = shader;
+		material2->Set("s_Diffuse", diffuseWhite);
+		//material2->Set("s_Diffuse2", diffuse2);
+		//material2->Set("s_Specular", specular);
+		material2->Set("u_Shininess", 8.0f);
+		material2->Set("u_TextureMix", 0.5f);
+		
+		ShaderMaterial::sptr material3 = ShaderMaterial::Create();
+		material3->Shader = shader;
+		material3->Set("s_Diffuse", diffuseOrange);
+		//material3->Set("s_Diffuse2", diffuse2);
+		//material3->Set("s_Specular", specular);
+		material3->Set("u_Shininess", 8.0f);
+		material3->Set("u_TextureMix", 0.5f);
+		
+		ShaderMaterial::sptr material4 = ShaderMaterial::Create();
+		material4->Shader = shader;
+		material4->Set("s_Diffuse", diffuseRG);
+		//materi4l3->Set("s_Diffuse2", diffuse2);
+		//materi4l3->Set("s_Specular", specular);
+		material4->Set("u_Shininess", 8.0f);
+		material4->Set("u_TextureMix", 0.5f);
 
 		GameObject sceneObj = scene->CreateEntity("scene_geo"); 
 		{
-			VertexArrayObject::sptr sceneVao = NotObjLoader::LoadFromFile("Sample.notobj");
-			sceneObj.emplace<RendererComponent>().SetMesh(sceneVao).SetMaterial(material1);
-			sceneObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			VertexArrayObject::sptr sceneVao = ObjLoader::LoadFromFile("models/pogCube.obj");
+			sceneObj.emplace<RendererComponent>().SetMesh(sceneVao).SetMaterial(material0);
+			sceneObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, -0.f);
+			sceneObj.get<Transform>().SetLocalScale(glm::vec3(3.f));
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(sceneObj);
 		}
 
-		GameObject obj2 = scene->CreateEntity("monkey_quads");
+		GameObject obj2 = scene->CreateEntity("Punching_Bag");
 		{
-			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/monkey_quads.obj");
-			obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material0);
-			obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 1.0f);
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/Punching_Bag.obj");
+			obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material2);
+			obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, -3.0f);
+			obj2.get<Transform>().RotateLocal(glm::vec3(90.f, 0.f, -90.f));
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj2);
 		}
 
-		GameObject obj3 = scene->CreateEntity("monkey_tris");
+		GameObject obj3 = scene->CreateEntity("Falcon_Punch");
 		{
-			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/monkey.obj");
-			obj3.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
-			obj3.get<Transform>().SetLocalPosition(2.0f, 0.0f, 1.0f);
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/punch_Guy.obj");
+			obj3.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material3);
+			obj3.get<Transform>().SetLocalPosition(1.2f, 0.0f, -3.0f);
+			obj3.get<Transform>().RotateLocal(glm::vec3(90.f, 0.f, 90.f));
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj3);
 		}
 
 
-		GameObject obj5 = scene->CreateEntity("cube");
+		/*GameObject obj5 = scene->CreateEntity("cube");
 		{
 			MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
 			MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f));
 			VertexArrayObject::sptr vao = builder.Bake();
 			
-			obj5.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
+			obj5.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material0);
 			obj5.get<Transform>().SetLocalPosition(-4.0f, 0.0f, 2.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj5);
-		}
+		}*/
 
 		GameObject obj4 = scene->CreateEntity("moving_box");
 		{
 			// Build a mesh
-			MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
-			MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
-			VertexArrayObject::sptr vao = builder.Bake();
-			
-			obj4.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material0);
 			obj4.get<Transform>().SetLocalPosition(-2.0f, 0.0f, 1.0f);
 
 			// Bind returns a smart pointer to the behaviour that was added
 			auto pathing = BehaviourBinding::Bind<FollowPathBehaviour>(obj4);
 			// Set up a path for the object to follow
-			pathing->Points.push_back({ -4.0f, -4.0f, 0.0f });
-			pathing->Points.push_back({ 4.0f, -4.0f, 0.0f });
-			pathing->Points.push_back({ 4.0f,  4.0f, 0.0f });
-			pathing->Points.push_back({ -4.0f,  4.0f, 0.0f });
+			pathing->Points.push_back({ -2.0f, -2.0f, 0.0f });
+			pathing->Points.push_back({ 2.0f, -2.0f, 0.0f });
+			pathing->Points.push_back({ 2.0f,  2.0f, 0.0f });
+			pathing->Points.push_back({ -2.0f,  2.0f, 0.0f });
 			pathing->Speed = 2.0f;
 		}
 
-		GameObject obj6 = scene->CreateEntity("following_monkey");
+		GameObject obj6 = scene->CreateEntity("Quadcopter");
 		{
-			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/monkey.obj");
-			obj6.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/Quadcopter.obj");
+			obj6.emplace<RendererComponent>().SetMesh(vao).SetMaterial(material4);
 			obj6.get<Transform>().SetLocalPosition(0.0f, 0.0f, 3.0f);
+			obj6.get<Transform>().RotateLocal(glm::vec3(90.f, 0.f, 0.f));
+			obj6.get<Transform>().SetLocalScale(glm::vec3(0.1f));
 			obj6.get<Transform>().SetParent(obj4);
 			
 			auto pathing = BehaviourBinding::Bind<FollowPathBehaviour>(obj6);
@@ -569,10 +658,13 @@ int main() {
 			glfwPollEvents();
 
 			// Update the timing
-			time.CurrentFrame = glfwGetTime();
+			time.CurrentFrame = glfwGetTime(); 
 			time.DeltaTime = static_cast<float>(time.CurrentFrame - time.LastFrame);
 
 			time.DeltaTime = time.DeltaTime > 1.0f ? 1.0f : time.DeltaTime;
+
+			timeFromStart += time.DeltaTime;
+			shader->SetUniform("u_Time", timeFromStart);  
 
 			// Update our FPS tracker data
 			fpsBuffer[frameIx] = 1.0f / time.DeltaTime;

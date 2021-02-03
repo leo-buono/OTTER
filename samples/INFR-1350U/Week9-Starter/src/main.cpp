@@ -156,6 +156,9 @@ void ShutdownImGui()
 }
 
 std::vector<std::function<void()>> imGuiCallbacks;
+bool diffuseBool = 1;
+bool ambientBool = 1;
+bool specularBool = 1;
 void RenderImGui() {
 	// Implementation new frame
 	ImGui_ImplOpenGL3_NewFrame();
@@ -168,9 +171,12 @@ void RenderImGui() {
 		for (auto& func : imGuiCallbacks) {
 			func();
 		}
-		ImGui::End();
-	}
+		
+
+
 	
+	ImGui::End();
+
 	// Make sure ImGui knows how big our window is
 	ImGuiIO& io = ImGui::GetIO();
 	int width{ 0 }, height{ 0 };
