@@ -316,7 +316,7 @@ int main() {
 				if (ImGui::Checkbox("Lighting Off only", &lightingBool))
 				{
 					ambientBool = false;
-					specularBool = false;
+					specularBool = false; 
 					specAmb = false;
 					LSDEffect = false;
 					diffuseOn = false; 
