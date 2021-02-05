@@ -279,18 +279,16 @@ int main() {
 		}
 
 		Framebuffer* testBuffer;
-		GameObject framebufferObjext = scene->CreateEntity("Basic Buffer");
+		GameObject framebufferObject = scene->CreateEntity("Basic Buffer");
 		{
 			int width, height;
 			glfwGetWindowSize(BackendHandler::window, &width, &height);
 
-			testBuffer = &framebufferObjext.emplace<Framebuffer>();
+			testBuffer = &framebufferObject.emplace<Framebuffer>();
 			testBuffer->AddDepthTarget();
-			testBuffer->AddColorTarget(GL_RGBA);
+			testBuffer->AddColorTarget(GL_RGBA8);
 			testBuffer->Init(width, height);
 		}
-
-
 		#pragma endregion 
 		//////////////////////////////////////////////////////////////////////////////////////////
 
@@ -395,7 +393,6 @@ int main() {
 			// Clear the screen
 			testBuffer->Clear();
 
-
 			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glClearDepth(1.0f);
@@ -438,6 +435,8 @@ int main() {
 			Shader::sptr current = nullptr;
 			ShaderMaterial::sptr currentMat = nullptr;
 
+			testBuffer->Bind();
+
 			// Iterate over the render group components and draw them
 			renderGroup.each( [&](entt::entity e, RendererComponent& renderer, Transform& transform) {
 				// If the shader has changed, set up it's uniforms
@@ -456,6 +455,8 @@ int main() {
 			});
 
 			testBuffer->Unbind();
+
+			testBuffer->DrawToBackbuffer();
 
 			// Draw our ImGui content
 			BackendHandler::RenderImGui();
