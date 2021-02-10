@@ -83,9 +83,8 @@ int main() {
 		std::vector<PostEffect*> effects;
 
 		SepiaEffect* sepiaEffect;
-		
-
 		GreyscaleEffect* greyscaleEffect;
+		ColorCorrectEffect* colorCorrectEffect;
 		
 
 		// We'll add some ImGui controls to control our shader
@@ -116,6 +115,19 @@ int main() {
 					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f))
 					{
 						temp->SetIntensity(intensity);
+					}
+				}
+				if (activeEffect == 2)
+				{
+					ImGui::Text("Active Effect: Color Correct Effect");
+
+					ColorCorrectEffect* temp = (ColorCorrectEffect*)effects[activeEffect];
+					static char input[BUFSIZ];
+					ImGui::InputText("Lut File to Use", input, BUFSIZ);
+
+					if (ImGui::Button("SetLUT", ImVec2(200.0f, 40.0f)))
+					{
+						temp->SetLUT(LUT3D(std::string(input)));
 					}
 				}
 			}
@@ -326,7 +338,13 @@ int main() {
 		}
 		effects.push_back(greyscaleEffect);
 		
-		
+		GameObject colorCorrectEffectObject = scene->CreateEntity("Greyscale Effect");
+		{
+			colorCorrectEffect = &colorCorrectEffectObject.emplace<ColorCorrectEffect>();
+			colorCorrectEffect->Init(width, height);
+		}
+		effects.push_back(colorCorrectEffect);
+
 		#pragma endregion 
 		//////////////////////////////////////////////////////////////////////////////////////////
 
@@ -498,7 +516,7 @@ int main() {
 			basicEffect->UnbindBuffer();
 
 			effects[activeEffect]->ApplyEffect(basicEffect);
-
+			
 			effects[activeEffect]->DrawToScreen();
 			
 			// Draw our ImGui content
