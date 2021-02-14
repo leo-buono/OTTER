@@ -20,7 +20,7 @@ out vec4 frag_color;
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
 void main() {
 	// Lecture 5
-	vec3 ambient = ((u_AmbientLightStrength * u_LightCol) + (u_AmbientCol * u_AmbientStrength));
+	vec3 ambient = ((u_AmbientLightStrength * u_LightCol) + (u_AmbientCol * u_AmbientStrength)); 
 
 	// Diffuse
 	vec3 N = normalize(inNormal);

@@ -31,6 +31,9 @@ int main() {
 	float fpsBuffer[128];
 	float minFps, maxFps, avgFps;
 	int selectedVao = 0; // select cube by default
+
+	bool hasLighting = true;
+
 	std::vector<GameObject> controllables;
 
 	BackendHandler::InitAll();
@@ -75,7 +78,7 @@ int main() {
 		shader->SetUniform("u_AmbientStrength", ambientPow);
 		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
 		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff); 
 
 		PostEffect* basicEffect;
 
@@ -85,10 +88,38 @@ int main() {
 		SepiaEffect* sepiaEffect;
 		GreyscaleEffect* greyscaleEffect;
 		ColorCorrectEffect* colorCorrectEffect;
+		BloomEffect* bloomEffect;
 		
 
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
+			if (ImGui::CollapsingHeader("Lighting controls"))
+			{
+				if (ImGui::Checkbox("No Lighting", &hasLighting))
+				{
+					shader->SetUniform("u_hasLighting", (int)!hasLighting); 
+				}
+				if (ImGui::Checkbox("Ambient Only", &hasLighting))
+				{
+
+				}
+				if (ImGui::Checkbox("Specular Only", &hasLighting))
+				{
+
+				}
+				if (ImGui::Checkbox("Ambient + spec", &hasLighting))
+				{
+
+				}
+				if (ImGui::Checkbox("Ambient + Spec + Bloom", &hasLighting))
+				{
+
+				}
+				if (ImGui::Checkbox("Textures", &hasLighting))
+				{
+
+				}
+			}
 			if (ImGui::CollapsingHeader("Effect controls"))
 			{
 				ImGui::SliderInt("Chosen Effect", &activeEffect, 0, effects.size() - 1);
@@ -112,7 +143,7 @@ int main() {
 					GreyscaleEffect* temp = (GreyscaleEffect*)effects[activeEffect];
 					float intensity = temp->GetIntensity();
 
-					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f))
+					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f)) 
 					{
 						temp->SetIntensity(intensity);
 					}
@@ -130,7 +161,19 @@ int main() {
 						temp->SetLUT(LUT3D(std::string(input)));
 					}
 				}
+				if (activeEffect == 3)
+				{
+					BloomEffect* temp = (BloomEffect*)effects[activeEffect]; 
+					float threshold = temp->GetThreshold();
+
+					ImGui::Text("Active Effect: Bloom");
+					if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 1.0f))
+					{
+						temp->SetThreshold(threshold);
+					}
+				}
 			}
+			
 			if (ImGui::CollapsingHeader("Environment generation"))
 			{
 				if (ImGui::Button("Regenerate Environment", ImVec2(200.0f, 40.0f)))
@@ -138,15 +181,15 @@ int main() {
 					EnvironmentGenerator::RegenerateEnvironment();
 				}
 			}
-			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
+		/*	if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
 			{
 				if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
-					shader->SetUniform("u_AmbientCol", ambientCol);
+					shader->SetUniform("u_AmbientCol", ambientCol); 
 				}
 				if (ImGui::SliderFloat("Fixed Ambient Power", &ambientPow, 0.01f, 1.0f)) {
 					shader->SetUniform("u_AmbientStrength", ambientPow);
 				}
-			}
+			}*/
 			if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
 			{
 				if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
@@ -337,13 +380,21 @@ int main() {
 			greyscaleEffect->Init(width, height);
 		}
 		effects.push_back(greyscaleEffect);
-		
-		GameObject colorCorrectEffectObject = scene->CreateEntity("Greyscale Effect");
+		 
+		GameObject colorCorrectEffectObject = scene->CreateEntity("Color Correction Effect");
 		{
 			colorCorrectEffect = &colorCorrectEffectObject.emplace<ColorCorrectEffect>();
 			colorCorrectEffect->Init(width, height);
 		}
 		effects.push_back(colorCorrectEffect);
+
+		GameObject bloomEffectObject = scene->CreateEntity("Bloom Effect");
+		{
+			bloomEffect = &bloomEffectObject.emplace<BloomEffect>();
+			bloomEffect->Init(width, height);
+		}
+		effects.push_back(bloomEffect);
+
 
 		#pragma endregion 
 		//////////////////////////////////////////////////////////////////////////////////////////

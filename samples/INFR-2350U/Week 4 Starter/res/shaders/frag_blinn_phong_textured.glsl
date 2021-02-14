@@ -23,11 +23,14 @@ uniform float u_LightAttenuationConstant;
 uniform float u_LightAttenuationLinear;
 uniform float u_LightAttenuationQuadratic;
 
+uniform int u_hasLighting;
+
 uniform float u_TextureMix;
 
 uniform vec3  u_CamPos;
 
 out vec4 frag_color;
+
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
 void main() {
@@ -67,5 +70,12 @@ void main() {
 		(ambient + diffuse + specular) * attenuation // light factors from our single light
 		) * inColor * textureColor.rgb; // Object color
 
-	frag_color = vec4(result, textureColor.a);
+	if(u_hasLighting == 1)
+	{
+		frag_color = vec4(result, textureColor.a);
+	}
+	else
+	{
+		frag_color = vec4(0, 0, 0, textureColor.a);
+	}
 }

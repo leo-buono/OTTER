@@ -4,7 +4,6 @@ void PostEffect::Init(unsigned width, unsigned height)
 {
 	if (!_shaders.size() > 0)
 	{
-
 		int index = int(_buffers.size());
 		_buffers.push_back(new Framebuffer());
 		_buffers[index]->AddColorTarget(GL_RGBA8);
@@ -77,7 +76,7 @@ void PostEffect::Unload()
 	_shaders.clear();
 }
 
-void PostEffect::BindBuffer(int index)
+void PostEffect::BindBuffer(int index) 
 {
 	_buffers[index]->Bind();
 }
@@ -97,7 +96,7 @@ void PostEffect::BindDepthAsTexture(int index, int textureSlot)
 	_buffers[index]->BindDepthAsTexture(textureSlot);
 }
 
-void PostEffect::UnbindTexture(int textureSlot)
+void PostEffect::UnbindTexture(int textureSlot)  
 {
 	glActiveTexture(GL_TEXTURE0 + textureSlot);
 	glBindTexture(GL_TEXTURE_2D, GL_NONE);
