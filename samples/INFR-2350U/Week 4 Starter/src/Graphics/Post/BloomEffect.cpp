@@ -98,6 +98,7 @@ void BloomEffect::ApplyEffect(PostEffect* buffer)
         BindShader(2);
         //_shaders[2]->SetUniform("uPixelSize", _pixelSize.x);
        // _shaders[2]->SetUniform("u_horizontal", true);
+        //_shaders[2]->SetUniform("weight[5]", &_blurValues);
 
         BindColorAsTexture(1, 0, 0);
 
@@ -111,6 +112,7 @@ void BloomEffect::ApplyEffect(PostEffect* buffer)
         BindShader(3);
         //_shaders[3]->SetUniform("uPixelSize", _pixelSize.y);
         //_shaders[3]->SetUniform("u_horizontal", false);
+       // _shaders[3]->SetUniform("weight[5]", &_blurValues);
 
         BindColorAsTexture(2, 0, 0);
 
@@ -140,4 +142,17 @@ void BloomEffect::SetThreshold(float x)
 float BloomEffect::GetThreshold()
 {
     return _threshold;
+}
+
+void BloomEffect::SetBlur(float x[5])
+{
+    for (int i = 0; i < 5; i++)
+    {
+        _blurValues[i] = x[i];
+    }
+}
+
+float* BloomEffect::GetBlur()
+{
+    return _blurValues;
 }

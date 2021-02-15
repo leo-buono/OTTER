@@ -5,14 +5,14 @@
 #include <json.hpp>
 #include <fstream>
 
-#include <Texture2D.h>
+#include <Texture2D.h> 
 #include <Texture2DData.h>
 #include <MeshBuilder.h>
 #include <MeshFactory.h>
 #include <NotObjLoader.h>
 #include <ObjLoader.h>
 #include <VertexTypes.h>
-#include <ShaderMaterial.h>
+#include <ShaderMaterial.h> 
 #include <RendererComponent.h>
 #include <TextureCubeMap.h>
 #include <TextureCubeMapData.h>
@@ -32,8 +32,6 @@ int main() {
 	float minFps, maxFps, avgFps;
 	int selectedVao = 0; // select cube by default
 
-	bool hasLighting = true;
-
 	std::vector<GameObject> controllables;
 
 	BackendHandler::InitAll();
@@ -47,7 +45,7 @@ int main() {
 
 	// Push another scope so most memory should be freed *before* we exit the app
 	{
-		#pragma region Shader and ImGui
+		#pragma region Shader and ImGui 
 		Shader::sptr passthroughShader = Shader::Create();
 		passthroughShader->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
 		passthroughShader->LoadShaderPartFromFile("shaders/passthrough_frag.glsl", GL_FRAGMENT_SHADER);
@@ -58,6 +56,14 @@ int main() {
 		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
 		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
 		shader->Link();
+
+		bool hasLighting = true;
+		bool hasDiffuse = false;
+		bool hasAmbient = false;
+		bool hasSpecular = false;
+		bool specAmb = false;
+		bool isTextured = true;
+
 
 		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 5.0f);
 		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
@@ -73,13 +79,14 @@ int main() {
 		shader->SetUniform("u_LightPos", lightPos);
 		shader->SetUniform("u_LightCol", lightCol);
 		shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-		shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+		shader->SetUniform("u_SpecularLightStrength", (float)hasSpecular * lightSpecularPow);
 		shader->SetUniform("u_AmbientCol", ambientCol);
-		shader->SetUniform("u_AmbientStrength", ambientPow);
+		shader->SetUniform("u_AmbientStrength", (int)hasAmbient * ambientPow);
 		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
 		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff); 
-
+		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		shader->SetUniform("u_diffuseBool", (int)!hasLighting);
+		shader->SetUniform("u_hasTextures", 1);
 		PostEffect* basicEffect;
 
 		int activeEffect = 0;
@@ -92,49 +99,98 @@ int main() {
 		
 
 		// We'll add some ImGui controls to control our shader
-		BackendHandler::imGuiCallbacks.push_back([&]() {
-			if (ImGui::CollapsingHeader("Lighting controls"))
+		BackendHandler::imGuiCallbacks.push_back([&]() 
+		{
+			if (ImGui::CollapsingHeader("Toggles"))
 			{
-				if (ImGui::Checkbox("No Lighting", &hasLighting))
+				if (ImGui::Checkbox("Lighting Off only", &hasLighting))
 				{
-					shader->SetUniform("u_hasLighting", (int)!hasLighting); 
+					hasAmbient = false;
+					hasSpecular = false;
+					specAmb = false;
 				}
-				if (ImGui::Checkbox("Ambient Only", &hasLighting))
+				shader->SetUniform("u_lightingStrength", (int)!hasLighting);
+				if (ImGui::Checkbox("Ambient Only", &hasAmbient))
 				{
+					hasLighting = false;
+					hasSpecular = false;
+					specAmb = false; 
+					//LSDEffect = false;
+				}
 
-				}
-				if (ImGui::Checkbox("Specular Only", &hasLighting))
+				shader->SetUniform("u_AmbientLightStrength", (int)hasAmbient * lightAmbientPow);
+				if (ImGui::Checkbox("Specular only", &hasSpecular))
 				{
-
+					hasAmbient = false;
+					hasLighting = false;
+					specAmb = false;
+					//LSDEffect = false;
 				}
-				if (ImGui::Checkbox("Ambient + spec", &hasLighting))
+				if (ImGui::Checkbox("Specular + Ambient", &specAmb)) 
 				{
-
+					hasAmbient = true;
+					hasSpecular = true;  
+					hasLighting = false;
+					//LSDEffect = false;
 				}
-				if (ImGui::Checkbox("Ambient + Spec + Bloom", &hasLighting))
-				{
-
-				}
-				if (ImGui::Checkbox("Textures", &hasLighting))
-				{
-
-				}
+				shader->SetUniform("u_SpecularLightStrength", (float)hasSpecular * lightSpecularPow);
+				//shader->SetUniform("u_EffectBool", (float)LSDEffect);
+				if (ImGui::Checkbox("Diffuse", &hasDiffuse))
+				{}
+				shader->SetUniform("u_diffuseBool", (int)hasDiffuse);
+				if (ImGui::Checkbox("Textured", &isTextured)) 
+				{}  
+					shader->SetUniform("u_hasTextures", (int)isTextured);
 			}
+			//if (ImGui::CollapsingHeader("Lighting controls"))
+			//{
+			//	if (ImGui::Checkbox("No Lighting", &hasLighting))
+			//	{
+			//		hasAmbient = false;
+			//		hasSpecular = false;
+			//	}
+			//	shader->SetUniform("u_hasLighting", (int)!hasLighting); 
+			//	if (ImGui::Checkbox("Ambient Only", &hasAmbient))
+			//	{
+			//		hasLighting = false;
+			//		hasSpecular = false;
+			//	}
+			//	shader->SetUniform("u_AmbientLightStrength", (float)hasAmbient * lightAmbientPow);
+			//	if (ImGui::Checkbox("Specular Only", &hasSpecular))
+			//	{
+			//		hasLighting = false;
+			//		hasAmbient = false;
+			//	}
+			//	if (ImGui::Checkbox("Ambient + spec", &hasLighting))
+			//	{
+
+			//	}
+			//	shader->SetUniform("u_SpecularLightStrength", (float)hasSpecular * lightSpecularPow);
+			//	if (ImGui::Checkbox("Ambient + Spec + Bloom", &hasLighting))
+			//	{
+
+			//	}
+			//	if (ImGui::Checkbox("Diffuse", &hasDiffuse))
+			//	{
+			//	}
+			//	shader->SetUniform("u_hasDiffuse", (int)hasDiffuse);
+			//	if (ImGui::Checkbox("Textures", &hasLighting))
+			//	{
+
+			//	}
+			//}
 			if (ImGui::CollapsingHeader("Effect controls"))
 			{
 				ImGui::SliderInt("Chosen Effect", &activeEffect, 0, effects.size() - 1);
 
 				if (activeEffect == 0)
 				{
-					ImGui::Text("Active Effect: Sepia Effect");
+					ImGui::Text("Active Effect: None");
 
 					SepiaEffect* temp = (SepiaEffect*)effects[activeEffect];
 					float intensity = temp->GetIntensity();
 
-					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f))
-					{
-						temp->SetIntensity(intensity);
-					}
+					temp->SetIntensity(0.f);
 				}
 				if (activeEffect == 1)
 				{
@@ -190,7 +246,7 @@ int main() {
 					shader->SetUniform("u_AmbientStrength", ambientPow);
 				}
 			}*/
-			if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
+			/*if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
 			{
 				if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
 					shader->SetUniform("u_LightPos", lightPos);
@@ -210,7 +266,7 @@ int main() {
 				if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
 					shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
 				}
-			}
+			}*/
 
 			auto name = controllables[selectedVao].get<GameObjectTag>().Name;
 			ImGui::Text(name.c_str());
@@ -243,11 +299,14 @@ int main() {
 		// Load some textures from files
 		Texture2D::sptr stone = Texture2D::LoadFromFile("images/Stone_001_Diffuse.png");
 		Texture2D::sptr stoneSpec = Texture2D::LoadFromFile("images/Stone_001_Specular.png");
-		Texture2D::sptr grass = Texture2D::LoadFromFile("images/grass.jpg");
+		//https://www.cgtrader.com/free-3d-models/textures/natural/dosch-textures-sand-ground-sample
+		Texture2D::sptr grass = Texture2D::LoadFromFile("images/sand.jpg");
+
 		Texture2D::sptr noSpec = Texture2D::LoadFromFile("images/grassSpec.png");
 		Texture2D::sptr box = Texture2D::LoadFromFile("images/box.bmp");
 		Texture2D::sptr boxSpec = Texture2D::LoadFromFile("images/box-reflections.bmp");
-		Texture2D::sptr simpleFlora = Texture2D::LoadFromFile("images/SimpleFlora.png");
+		Texture2D::sptr bark = Texture2D::LoadFromFile("images/bark.jpg");
+		Texture2D::sptr cactusTex = Texture2D::LoadFromFile("images/cactus.png");
 		LUT3D testCube("cubes/BrightenedCorrection.cube");
 
 		// Load the cube map
@@ -292,56 +351,116 @@ int main() {
 		ShaderMaterial::sptr grassMat = ShaderMaterial::Create();
 		grassMat->Shader = shader;
 		grassMat->Set("s_Diffuse", grass);
-		grassMat->Set("s_Specular", noSpec);
+		//grassMat->Set("s_Specular", noSpec);
 		grassMat->Set("u_Shininess", 2.0f);
 		grassMat->Set("u_TextureMix", 0.0f);
+
+		ShaderMaterial::sptr cactMat = ShaderMaterial::Create();
+		cactMat->Shader = shader;
+		cactMat->Set("s_Diffuse", cactusTex);
+		//grassMat->Set("s_Specular", noSpec);
+		cactMat->Set("u_Shininess", 2.0f);
+		cactMat->Set("u_TextureMix", 0.0f);
+
+		ShaderMaterial::sptr barkMat = ShaderMaterial::Create();
+		barkMat->Shader = shader;
+		barkMat->Set("s_Diffuse", bark);
+		//barkMat->Set("s_Specular", boxSpec);
+		barkMat->Set("u_Shininess", 8.0f);
+		barkMat->Set("u_TextureMix", 0.0f);
 
 		ShaderMaterial::sptr boxMat = ShaderMaterial::Create();
 		boxMat->Shader = shader;
 		boxMat->Set("s_Diffuse", box);
-		boxMat->Set("s_Specular", boxSpec);
+		//barkMat->Set("s_Specular", boxSpec);
 		boxMat->Set("u_Shininess", 8.0f);
 		boxMat->Set("u_TextureMix", 0.0f);
 
-		ShaderMaterial::sptr simpleFloraMat = ShaderMaterial::Create();
-		simpleFloraMat->Shader = shader;
-		simpleFloraMat->Set("s_Diffuse", simpleFlora);
-		simpleFloraMat->Set("s_Specular", noSpec);
-		simpleFloraMat->Set("u_Shininess", 8.0f);
-		simpleFloraMat->Set("u_TextureMix", 0.0f);
+
 
 		GameObject obj1 = scene->CreateEntity("Ground"); 
 		{
 			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/plane.obj");
-			obj1.emplace<RendererComponent>().SetMesh(vao).SetMaterial(grassMat);
+			obj1.emplace<RendererComponent>().SetMesh(vao).SetMaterial(grassMat); 
 		}
-
-		GameObject obj2 = scene->CreateEntity("monkey_quads");
+		GameObject cactus = scene->CreateEntity("cactus");
 		{
-			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/monkey_quads.obj");
-			obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(stoneMat);
-			obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 2.0f);
-			obj2.get<Transform>().SetLocalRotation(0.0f, 0.0f, -90.0f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj2);
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/cactus.obj");
+			cactus.emplace<RendererComponent>().SetMesh(vao).SetMaterial(cactMat);
+			cactus.get<Transform>().SetLocalPosition(5.0f, 0.0f, 0.0f);
+			cactus.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			cactus.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
+		}
+		GameObject cactus1 = scene->CreateEntity("cactus");
+		{
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/cactus.obj");
+			cactus1.emplace<RendererComponent>().SetMesh(vao).SetMaterial(cactMat);
+			cactus1.get<Transform>().SetLocalPosition(-5.0f, 0.0f, 0.0f);
+			cactus1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			cactus1.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
+		}
+		GameObject cactus2 = scene->CreateEntity("cactus");
+		{
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/cactus.obj");
+			cactus2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(cactMat);
+			cactus2.get<Transform>().SetLocalPosition(0.0f, 5.0f, 0.0f);
+			cactus2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			cactus2.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
+		}
+		GameObject cactus3 = scene->CreateEntity("cactus");
+		{
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/cactus.obj");
+			cactus3.emplace<RendererComponent>().SetMesh(vao).SetMaterial(cactMat);
+			cactus3.get<Transform>().SetLocalPosition(0.0f, -5.0f, 0.0f); 
+			cactus3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			cactus3.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
 		}
 
-		std::vector<glm::vec2> allAvoidAreasFrom = { glm::vec2(-4.0f, -4.0f) };
-		std::vector<glm::vec2> allAvoidAreasTo = { glm::vec2(4.0f, 4.0f) };
+	GameObject obj2 = scene->CreateEntity("DeadTree"); 
+	{
+		VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/DeadTree.obj");
+		obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(barkMat);
+		obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+		obj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+		obj2.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
+		BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj2);
+	}
+	GameObject obj4 = scene->CreateEntity("tumbleweed");
+	{
+		//// Build a mesh
+		//VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/tumbleweed.obj");
+		//obj4.emplace<RendererComponent>().SetMesh(vao).SetMaterial(barkMat);
+		//obj4.get<Transform>().SetLocalPosition(3.0f, 0.0f, 0.0f);
+		//obj4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+		//obj4.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 
-		std::vector<glm::vec2> rockAvoidAreasFrom = { glm::vec2(-3.0f, -3.0f), glm::vec2(-19.0f, -19.0f), glm::vec2(5.0f, -19.0f),
-														glm::vec2(-19.0f, 5.0f), glm::vec2(-19.0f, -19.0f) };
-		std::vector<glm::vec2> rockAvoidAreasTo = { glm::vec2(3.0f, 3.0f), glm::vec2(19.0f, -5.0f), glm::vec2(19.0f, 19.0f),
-														glm::vec2(19.0f, 19.0f), glm::vec2(-5.0f, 19.0f) };
-		glm::vec2 spawnFromHere = glm::vec2(-19.0f, -19.0f);
-		glm::vec2 spawnToHere = glm::vec2(19.0f, 19.0f);
+		//// Bind returns a smart pointer to the behaviour that was added
+		//auto pathing = BehaviourBinding::Bind<FollowPathBehaviour>(obj4);
+		//// Set up a path for the object to follow
+		//pathing->Points.push_back({ -4.0f, -4.0f, 0.0f });
+		//pathing->Points.push_back({ 4.0f, -4.0f, 0.0f });
+		//pathing->Points.push_back({ 4.0f,  4.0f, 0.0f });
+		//pathing->Points.push_back({ -4.0f,  4.0f, 0.0f });
+		//pathing->Speed = 2.0f;
+	}
 
-		EnvironmentGenerator::AddObjectToGeneration("models/simplePine.obj", simpleFloraMat, 150,
-			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 150,
-			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 40,
-			spawnFromHere, spawnToHere, rockAvoidAreasFrom, rockAvoidAreasTo);
-		EnvironmentGenerator::GenerateEnvironment();
+		//std::vector<glm::vec2> allAvoidAreasFrom = { glm::vec2(-4.0f, -4.0f) };
+		//std::vector<glm::vec2> allAvoidAreasTo = { glm::vec2(4.0f, 4.0f) };
+		//
+		//std::vector<glm::vec2> rockAvoidAreasFrom = { glm::vec2(-3.0f, -3.0f), glm::vec2(-19.0f, -19.0f), glm::vec2(5.0f, -19.0f),
+		//												glm::vec2(-19.0f, 5.0f), glm::vec2(-19.0f, -19.0f) };
+		//std::vector<glm::vec2> rockAvoidAreasTo = { glm::vec2(3.0f, 3.0f), glm::vec2(19.0f, -5.0f), glm::vec2(19.0f, 19.0f),
+		//												glm::vec2(19.0f, 19.0f), glm::vec2(-5.0f, 19.0f) };
+		//glm::vec2 spawnFromHere = glm::vec2(-19.0f, -19.0f);
+		//glm::vec2 spawnToHere = glm::vec2(19.0f, 19.0f);
+
+		//EnvironmentGenerator::AddObjectToGeneration("models/simplePine.obj", simpleFloraMat, 150,
+		//	spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
+		//EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 150,
+		//	spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
+		//EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 40,
+		//	spawnFromHere, spawnToHere, rockAvoidAreasFrom, rockAvoidAreasTo);
+		//EnvironmentGenerator::GenerateEnvironment();
 
 		// Create an object to be our camera
 		GameObject cameraObject = scene->CreateEntity("Camera");
@@ -434,6 +553,7 @@ int main() {
 			// use std::bind
 			keyToggles.emplace_back(GLFW_KEY_T, [&]() { cameraObject.get<Camera>().ToggleOrtho(); });
 
+			
 			controllables.push_back(obj2);
 
 			keyToggles.emplace_back(GLFW_KEY_KP_ADD, [&]() {
