@@ -104,6 +104,12 @@ void UniformBuffer::Bind(GLuint slot)
 	_BindLocation = slot;
 }
 
+void UniformBuffer::Unbind(GLuint slot)
+{
+	glBindBufferBase(GL_UNIFORM_BUFFER, slot, GL_NONE);
+	_BindLocation = -1;
+}
+
 void UniformBuffer::Bind() const
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, _Handle);

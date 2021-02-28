@@ -5,6 +5,12 @@
 #include <json.hpp>
 #include <fstream>
 
+//TODO: New for this tutorial
+#include <DirectionalLight.h>
+#include <PointLight.h>
+#include <UniformBuffer.h>
+/////////////////////////////
+
 #include <Texture2D.h>
 #include <Texture2DData.h>
 #include <MeshBuilder.h>
@@ -53,40 +59,31 @@ int main() {
 		// Load our shaders
 		Shader::sptr shader = Shader::Create();
 		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
-		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
+		//Directional Light Shader
+		shader->LoadShaderPartFromFile("shaders/directional_blinn_phong_frag.glsl", GL_FRAGMENT_SHADER);
 		shader->Link();
+		
+		//Creates our directional Light
+		DirectionalLight theSun;
+		UniformBuffer directionalLightBuffer;
 
-		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 5.0f);
-		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
-		float     lightAmbientPow = 0.05f;
-		float     lightSpecularPow = 1.0f;
-		glm::vec3 ambientCol = glm::vec3(1.0f);
-		float     ambientPow = 0.1f;
-		float     lightLinearFalloff = 0.09f;
-		float     lightQuadraticFalloff = 0.032f;
+		//Allocates enough memory for one directional light (we can change this easily, but we only need 1 directional light)
+		directionalLightBuffer.AllocateMemory(sizeof(DirectionalLight));
+		//Casts our sun as "data" and sends it to the shader
+		directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
 
-		// These are our application / scene level uniforms that don't necessarily update
-		// every frame
-		shader->SetUniform("u_LightPos", lightPos);
-		shader->SetUniform("u_LightCol", lightCol);
-		shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-		shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
-		shader->SetUniform("u_AmbientCol", ambientCol);
-		shader->SetUniform("u_AmbientStrength", ambientPow);
-		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
-		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		directionalLightBuffer.Bind(0);
 
+		//Basic effect for drawing to
 		PostEffect* basicEffect;
 
+		//Post Processing Effects
 		int activeEffect = 0;
 		std::vector<PostEffect*> effects;
-
 		SepiaEffect* sepiaEffect;
 		GreyscaleEffect* greyscaleEffect;
 		ColorCorrectEffect* colorCorrectEffect;
 		
-
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
 			if (ImGui::CollapsingHeader("Effect controls"))
@@ -138,34 +135,15 @@ int main() {
 					EnvironmentGenerator::RegenerateEnvironment();
 				}
 			}
-			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
-			{
-				if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
-					shader->SetUniform("u_AmbientCol", ambientCol);
-				}
-				if (ImGui::SliderFloat("Fixed Ambient Power", &ambientPow, 0.01f, 1.0f)) {
-					shader->SetUniform("u_AmbientStrength", ambientPow);
-				}
-			}
 			if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
 			{
-				if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
-					shader->SetUniform("u_LightPos", lightPos);
+				if (ImGui::DragFloat3("Light Direction/Position", glm::value_ptr(theSun._lightDirection), 0.01f, -10.0f, 10.0f)) 
+				{
+					directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
 				}
-				if (ImGui::ColorPicker3("Light Col", glm::value_ptr(lightCol))) {
-					shader->SetUniform("u_LightCol", lightCol);
-				}
-				if (ImGui::SliderFloat("Light Ambient Power", &lightAmbientPow, 0.0f, 1.0f)) {
-					shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-				}
-				if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) {
-					shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
-				}
-				if (ImGui::DragFloat("Light Linear Falloff", &lightLinearFalloff, 0.01f, 0.0f, 1.0f)) {
-					shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-				}
-				if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
-					shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+				if (ImGui::ColorPicker3("Light Col", glm::value_ptr(theSun._lightCol)))
+				{
+					directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
 				}
 			}
 
@@ -195,7 +173,8 @@ int main() {
 		glEnable(GL_CULL_FACE);
 		glDepthFunc(GL_LEQUAL); // New 
 
-		#pragma region TEXTURE LOADING
+		///////////////////////////////////// Texture Loading //////////////////////////////////////////////////
+		#pragma region Texture
 
 		// Load some textures from files
 		Texture2D::sptr stone = Texture2D::LoadFromFile("images/Stone_001_Diffuse.png");
@@ -221,6 +200,7 @@ int main() {
 		texture2->Clear();
 
 		#pragma endregion
+		//////////////////////////////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////// Scene Generation //////////////////////////////////////////////////
 		#pragma region Scene Generation
@@ -328,6 +308,7 @@ int main() {
 		{
 			sepiaEffect = &sepiaEffectObject.emplace<SepiaEffect>();
 			sepiaEffect->Init(width, height);
+			sepiaEffect->SetIntensity(0.0f);
 		}
 		effects.push_back(sepiaEffect);
 
@@ -526,6 +507,8 @@ int main() {
 			glfwSwapBuffers(BackendHandler::window);
 			time.LastFrame = time.CurrentFrame;
 		}
+
+		directionalLightBuffer.Unbind(0);
 
 		// Nullify scene so that we can release references
 		Application::Instance().ActiveScene = nullptr;

@@ -63,7 +63,8 @@ public:
 	void SendUInt(unsigned int scalar, int offset) const;
 	void SendBool(bool boolean, int offset) const;
 	void SendData(void* data, int size, int offset = 0) const;
-	void Bind(GLuint slot);	// Binds the uniform buffer to an active slot (similar to active texture slots)
+	void Bind(GLuint slot); // Binds the uniform buffer to an active slot (similar to active texture slots)
+	void Unbind(GLuint slot); // Unbinds the buffer to active slot
 	bool IsInit();
 
 private:
