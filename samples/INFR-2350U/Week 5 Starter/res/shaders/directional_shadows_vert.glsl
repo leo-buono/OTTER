@@ -15,8 +15,8 @@ uniform mat4 u_ModelViewProjection;
 uniform mat4 u_View;
 uniform mat4 u_Model;
 uniform mat3 u_NormalMatrix;
-uniform vec3 u_LightPos;
 uniform mat4 u_LightSpaceMatrix;
+
 
 void main() {
 
@@ -32,7 +32,7 @@ void main() {
 	// Pass our UV coords to the fragment shader
 	outUV = inUV;
 
-	//Pass out the light space fragment pos
+	//Pass out the fragment position
 	outFragPosLightSpace = u_LightSpaceMatrix * vec4(outPos, 1.0);
 
 	///////////

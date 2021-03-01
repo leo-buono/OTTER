@@ -21,7 +21,7 @@ struct DirectionalLight
 	//Power controls
 	float _lightAmbientPow;
 	float _lightSpecularPow;
-
+	
 	float _shadowBias;
 };
 
@@ -40,24 +40,25 @@ uniform vec3  u_CamPos;
 
 out vec4 frag_color;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
 	//Perspective division
 	vec3 projectionCoordinates = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
+	
 	//Transform into a [0,1] range
 	projectionCoordinates = projectionCoordinates * 0.5 + 0.5;
-
-	//Get the closest depth value
+	
+	//Get the closest depth value from light's perspective (using our 0-1 range)
 	float closestDepth = texture(s_ShadowMap, projectionCoordinates.xy).r;
 
-	//Get the current depth according to our camera
+	//Get the current depth according to the light
 	float currentDepth = projectionCoordinates.z;
 
 	//Check whether there's a shadow
-	float shadow = currentDepth - sun._shadowBias > closestDepth ? 1.0 : 0.0;
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
-	return shadow; 
+	//Return the value
+	return shadow;
 }
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
@@ -82,11 +83,14 @@ void main() {
 	vec4 textureColor2 = texture(s_Diffuse2, inUV);
 	vec4 textureColor = mix(textureColor1, textureColor2, u_TextureMix);
 
-	float shadow = ShadowCalculation(inFragPosLightSpace);
+	float bias = max(0.05 * (1.0 - dot(N, lightDir)), sun._shadowBias); 
+
+	float shadow = ShadowCalculation(inFragPosLightSpace, bias);
 
 	vec3 result = (
 		(sun._ambientPow * sun._ambientCol.xyz) + // global ambient light
-		(1.0 - shadow) * (diffuse + specular) // light factors from our single light
+		(1.0 - shadow) * //Shadow value
+		(diffuse + specular) // light factors from our single light
 		) * inColor * textureColor.rgb; // Object color
 
 	frag_color = vec4(result, textureColor.a);
