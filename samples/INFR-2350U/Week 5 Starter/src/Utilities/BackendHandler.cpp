@@ -50,10 +50,6 @@ void BackendHandler::GlfwWindowResizedCallback(GLFWwindow* window, int width, in
 	{
 		cam.ResizeWindow(width, height);
 	});
-	Application::Instance().ActiveScene->Registry().view<Framebuffer>().each([=](Framebuffer& buf)
-	{
-		buf.Reshape(width, height);
-	});
 	Application::Instance().ActiveScene->Registry().view<PostEffect>().each([=](PostEffect& buf)
 	{
 		buf.Reshape(width, height);
@@ -181,12 +177,15 @@ void BackendHandler::RenderImGui()
 	}
 }
 
-void BackendHandler::RenderVAO(const Shader::sptr& shader, const VertexArrayObject::sptr& vao, const glm::mat4& viewProjection, const Transform& transform)
+void BackendHandler::RenderVAO(const Shader::sptr& shader, const VertexArrayObject::sptr& vao, const glm::mat4& viewProjection, const Transform& transform, const glm::mat4& lightSpaceMat)
 {
+	shader->Bind();
 	shader->SetUniformMatrix("u_ModelViewProjection", viewProjection * transform.WorldTransform());
+	shader->SetUniformMatrix("u_LightSpaceMatrix", lightSpaceMat);
 	shader->SetUniformMatrix("u_Model", transform.WorldTransform());
 	shader->SetUniformMatrix("u_NormalMatrix", transform.WorldNormalMatrix());
 	vao->Render();
+	shader->UnBind();
 }
 
 void BackendHandler::SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, const glm::mat4& projection)

@@ -20,6 +20,8 @@ struct DirectionalLight
 	//Power controls
 	float _lightAmbientPow;
 	float _lightSpecularPow;
+
+	float _shadowBias;
 };
 
 layout (std140, binding = 0) uniform u_Lights

@@ -272,11 +272,11 @@ int main() {
 		glm::vec2 spawnFromHere = glm::vec2(-19.0f, -19.0f);
 		glm::vec2 spawnToHere = glm::vec2(19.0f, 19.0f);
 
-		EnvironmentGenerator::AddObjectToGeneration("models/simplePine.obj", simpleFloraMat, 150,
+		EnvironmentGenerator::AddObjectToGeneration("models/simplePine.obj", simpleFloraMat, 40,
 			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 150,
+		EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 40,
 			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 40,
+		EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 24,
 			spawnFromHere, spawnToHere, rockAvoidAreasFrom, rockAvoidAreasTo);
 		EnvironmentGenerator::GenerateEnvironment();
 
