@@ -21,7 +21,7 @@
 #include <ShaderMaterial.h>
 #include <RendererComponent.h>
 #include <TextureCubeMap.h>
-#include <TextureCubeMapData.h>
+#include <TextureCubeMapData.h> 
 
 #include <Timing.h>
 #include <GameObjectTag.h>
@@ -56,6 +56,12 @@ int main() {
 		passthroughShader->LoadShaderPartFromFile("shaders/passthrough_frag.glsl", GL_FRAGMENT_SHADER);
 		passthroughShader->Link();
 
+		Shader::sptr simpleDepthShader = Shader::Create();
+		simpleDepthShader->LoadShaderPartFromFile("shaders/simple_depth_vert.glsl", GL_VERTEX_SHADER);
+		simpleDepthShader->LoadShaderPartFromFile("shaders/simple_depth_frag.glsl", GL_FRAGMENT_SHADER);
+		simpleDepthShader->Link();
+
+
 		// Load our shaders
 		Shader::sptr shader = Shader::Create();
 		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
@@ -76,6 +82,7 @@ int main() {
 
 		//Basic effect for drawing to
 		PostEffect* basicEffect;
+		Framebuffer* shadowBuffer;
 
 		//Post Processing Effects
 		int activeEffect = 0;
@@ -183,7 +190,12 @@ int main() {
 		Texture2D::sptr noSpec = Texture2D::LoadFromFile("images/grassSpec.png");
 		Texture2D::sptr box = Texture2D::LoadFromFile("images/box.bmp");
 		Texture2D::sptr boxSpec = Texture2D::LoadFromFile("images/box-reflections.bmp");
-		Texture2D::sptr simpleFlora = Texture2D::LoadFromFile("images/SimpleFlora.png");
+
+		Texture2D::sptr simpleFlora = Texture2D::LoadFromFile("images/pinetree.png");
+		Texture2D::sptr snow1024 = Texture2D::LoadFromFile("images/snow_1024.jpg");
+		//Texture2D::sptr meltedsnow = Texture2D::LoadFromFile("images/Melted.png");
+		Texture2D::sptr meltedsnow = Texture2D::LoadFromFile("images/Tree_Material_BaseColor.png");
+
 		LUT3D testCube("cubes/BrightenedCorrection.cube");
 
 		// Load the cube map
@@ -247,19 +259,34 @@ int main() {
 		simpleFloraMat->Set("u_Shininess", 8.0f);
 		simpleFloraMat->Set("u_TextureMix", 0.0f);
 
+		ShaderMaterial::sptr snowMat = ShaderMaterial::Create();
+		snowMat->Shader = shader;
+		snowMat->Set("s_Diffuse", snow1024);
+		snowMat->Set("s_Specular", noSpec);
+		snowMat->Set("u_Shininess", 8.0f); 
+		snowMat->Set("u_TextureMix", 0.0f);
+
+		ShaderMaterial::sptr meltedMTL = ShaderMaterial::Create();
+		meltedMTL->Shader = shader;
+		meltedMTL->Set("s_Diffuse", meltedsnow);
+		meltedMTL->Set("s_Specular", noSpec);
+		meltedMTL->Set("u_Shininess", 8.0f);
+		meltedMTL->Set("u_TextureMix", 0.0f);
+
+
 		GameObject obj1 = scene->CreateEntity("Ground"); 
 		{
 			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/plane.obj");
-			obj1.emplace<RendererComponent>().SetMesh(vao).SetMaterial(grassMat);
+			obj1.emplace<RendererComponent>().SetMesh(vao).SetMaterial(snowMat);
 		}
 
-		GameObject obj2 = scene->CreateEntity("monkey_quads");
+		GameObject obj2 = scene->CreateEntity("Iron_Tree");
 		{
-			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/monkey_quads.obj");
-			obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(stoneMat);
-			obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 2.0f);
-			obj2.get<Transform>().SetLocalRotation(0.0f, 0.0f, -90.0f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj2);
+			VertexArrayObject::sptr vao = ObjLoader::LoadFromFile("models/ironTree.obj");
+			obj2.emplace<RendererComponent>().SetMesh(vao).SetMaterial(meltedMTL);
+			obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			obj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj2); 
 		}
 
 		std::vector<glm::vec2> allAvoidAreasFrom = { glm::vec2(-4.0f, -4.0f) };
@@ -272,12 +299,12 @@ int main() {
 		glm::vec2 spawnFromHere = glm::vec2(-19.0f, -19.0f);
 		glm::vec2 spawnToHere = glm::vec2(19.0f, 19.0f);
 
-		EnvironmentGenerator::AddObjectToGeneration("models/simplePine.obj", simpleFloraMat, 40,
+		EnvironmentGenerator::AddObjectToGeneration("models/pineTree.obj", simpleFloraMat, 500,
 			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 40,
-			spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
-		EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 24,
-			spawnFromHere, spawnToHere, rockAvoidAreasFrom, rockAvoidAreasTo);
+		//EnvironmentGenerator::AddObjectToGeneration("models/simpleTree.obj", simpleFloraMat, 40,
+		//	spawnFromHere, spawnToHere, allAvoidAreasFrom, allAvoidAreasTo);
+		//EnvironmentGenerator::AddObjectToGeneration("models/simpleRock.obj", simpleFloraMat, 24,
+		//	spawnFromHere, spawnToHere, rockAvoidAreasFrom, rockAvoidAreasTo);
 		EnvironmentGenerator::GenerateEnvironment();
 
 		// Create an object to be our camera
@@ -297,6 +324,16 @@ int main() {
 
 		int width, height;
 		glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+		int shadowWidth = 1024;
+		int shadowHeight = 1024;
+
+		GameObject shadowBufferObject = scene->CreateEntity("Shadow Buffer"); 
+		{
+			shadowBuffer = &shadowBufferObject.emplace<Framebuffer>();
+			shadowBuffer->AddDepthTarget();
+			shadowBuffer->Init(shadowWidth, shadowHeight);
+		}
 
 		GameObject framebufferObject = scene->CreateEntity("Basic Effect");
 		{
@@ -435,6 +472,7 @@ int main() {
 			{
 				effects[i]->Clear();
 			}
+			shadowBuffer->Clear();
 
 
 			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
@@ -452,7 +490,12 @@ int main() {
 			glm::mat4 view = glm::inverse(camTransform.LocalTransform());
 			glm::mat4 projection = cameraObject.get<Camera>().GetProjection();
 			glm::mat4 viewProjection = projection * view;
-						
+					
+			//set up light space matrix
+			glm::mat4 lightProjectionMatrix = glm::ortho(-20.f, 20.f, -20.f, 20.f, -30.f, 30.f);
+			glm::mat4 lightViewMatrix = glm::lookAt(glm::vec3(-theSun._lightDirection), glm::vec3(), glm::vec3(0.f, 0.f, 1.f));
+			glm::mat4 lightSpaceViewProj = lightProjectionMatrix * lightViewMatrix;
+
 			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 			renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -472,8 +515,21 @@ int main() {
 			});
 
 			// Start by assuming no shader or material is applied
-			Shader::sptr current = nullptr;
+			Shader::sptr current = nullptr; 
 			ShaderMaterial::sptr currentMat = nullptr;
+
+			glViewport(0, 0, shadowWidth, shadowHeight);
+			shadowBuffer->Bind();
+			renderGroup.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) 
+				{
+				// Render the mesh
+				BackendHandler::RenderVAO(simpleDepthShader, renderer.Mesh, viewProjection, transform, lightSpaceViewProj);
+				});
+			shadowBuffer->Unbind();
+
+			glfwGetWindowSize(BackendHandler::window, &width, &height);
+			glViewport(0, 0, width, height);
+
 
 			basicEffect->BindBuffer(0);
 
@@ -490,10 +546,13 @@ int main() {
 					currentMat = renderer.Material;
 					currentMat->Apply();
 				}
+				shadowBuffer->BindDepthAsTexture(30);
+
 				// Render the mesh
-				BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+				BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform, lightSpaceViewProj);
 			});
 
+			shadowBuffer->UnbindTexture(30);
 			basicEffect->UnbindBuffer();
 
 			effects[activeEffect]->ApplyEffect(basicEffect);
