@@ -32,7 +32,7 @@ void main() {
 	// Pass our UV coords to the fragment shader
 	outUV = inUV;
 
-	//pass out the light space frag pos
+	//Pass out the light space fragment pos
 	outFragPosLightSpace = u_LightSpaceMatrix * vec4(outPos, 1.0);
 
 	///////////

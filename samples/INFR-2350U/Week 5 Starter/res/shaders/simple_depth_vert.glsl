@@ -6,9 +6,8 @@ layout (location = 0) in vec3 inPosition;
 uniform mat4 u_LightSpaceMatrix;
 uniform mat4 u_Model;
 
-
 void main()
 { 
-	//lightspace matrix is the viewprojection matric from the lights perspecive
+	//Lightspace matrix is the viewProjection matrix from the light's perspective
 	gl_Position = u_LightSpaceMatrix * u_Model * vec4(inPosition, 1.0);
 }

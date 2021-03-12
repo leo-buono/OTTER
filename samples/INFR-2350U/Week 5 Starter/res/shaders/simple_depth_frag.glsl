@@ -1,7 +1,6 @@
-#version 410
+#version 420
 
 void main() 
 {
-	//depth framebuffer doesn't have any color targets
-	
+	//Depth framebuffer doesn't have any color targets
 }

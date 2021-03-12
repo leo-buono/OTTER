@@ -31,7 +31,6 @@ layout (std140, binding = 0) uniform u_Lights
 };
 
 layout (binding = 30) uniform sampler2D s_ShadowMap;
-
 uniform sampler2D s_Diffuse;
 uniform sampler2D s_Diffuse2;
 uniform sampler2D s_Specular;
@@ -43,11 +42,11 @@ out vec4 frag_color;
 
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
-	//Perspecitve division, make it so the projection works with the shadow
+	//Perspective division
 	vec3 projectionCoordinates = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
-	//Transform values into a [0, 1] range
-	projectionCoordinates = projectionCoordinates  * 0.5 + 0.5;
+	//Transform into a [0,1] range
+	projectionCoordinates = projectionCoordinates * 0.5 + 0.5;
 
 	//Get the closest depth value
 	float closestDepth = texture(s_ShadowMap, projectionCoordinates.xy).r;
@@ -56,22 +55,10 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	float currentDepth = projectionCoordinates.z;
 
 	//Check whether there's a shadow
+	float shadow = currentDepth - sun._shadowBias > closestDepth ? 1.0 : 0.0;
 
-	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(s_ShadowMap, 0);
-	for(int x = -1; x <= 1; ++x)
-	{
-    	for(int y = -1; y <= 1; ++y)
-    	{
-        	float pcfDepth = texture(s_ShadowMap, projectionCoordinates.xy + vec2(x, y) * texelSize).r; 
-        	shadow += currentDepth - sun._shadowBias > pcfDepth ? 1.0 : 0.0;        
-    	}    
-	}
-	shadow /= 9.0;
-
-	return shadow;
+	return shadow; 
 }
-
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
 void main() {
