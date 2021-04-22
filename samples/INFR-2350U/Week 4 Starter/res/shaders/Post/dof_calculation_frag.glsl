@@ -9,7 +9,7 @@ layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
 layout(location = 3) in vec2 inUV;
 
-float depthEye = 5;
+uniform float u_depthEye = 50;
 
 float S1 = 20.0f;
 float F = 0.0303f;
@@ -22,7 +22,7 @@ float calculateCircleOfConfusion()
 {
     // S2 is the distance this pixel is from the camera
     // This value is computed for you in the default_v vertex shader
-    float S2 = abs(depthEye);
+    float S2 = abs(u_depthEye);
 
     float CoC = A  * (abs(S2 - S1) / S2) * (F / (S1 - F));
 
@@ -55,7 +55,7 @@ vec3 calculatePixelColor()
 void main()
 {
     // // The RGB channels contain the pixel's color
-    // FragColor.rgb = calculatePixelColor();
+    frag_color.rgb = inColor;
 
     // The A channel contains the pixel's blurriness
     frag_color.a = calculateCircleOfConfusion();

@@ -232,13 +232,13 @@ int main() {
 				if (activeEffect == 4)
 				{
 					DepthOfFieldEffect* temp = (DepthOfFieldEffect*)effects[activeEffect];
-					//float threshold = temp->GetThreshold();
+					float pixelDist = temp->GetThreshold();
 
 					ImGui::Text("Active Effect: DOF");
-				/*	if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 1.0f))
+					if (ImGui::SliderFloat("Pixel Distance", &pixelDist, 0.0f, 100.0f))
 					{
-						temp->SetThreshold(threshold);
-					}*/
+						temp->SetThreshold(pixelDist);
+					}
 				}
 			}
 			

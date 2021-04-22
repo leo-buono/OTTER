@@ -10,7 +10,7 @@ void DepthOfFieldEffect::Init(unsigned width, unsigned height)
 
     //Loads the shaders 
     index = int(_shaders.size());
-    _shaders.push_back(Shader::Create());
+    _shaders.push_back(Shader::Create()); 
     _shaders[index]->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
     _shaders[index]->LoadShaderPartFromFile("shaders/passthrough_frag.glsl", GL_FRAGMENT_SHADER);
     _shaders[index]->Link();
@@ -24,7 +24,7 @@ void DepthOfFieldEffect::Init(unsigned width, unsigned height)
     //Loads the shaders
     index = int(_shaders.size());
     _shaders.push_back(Shader::Create());
-    _shaders[index]->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
+    _shaders[index]->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
     _shaders[index]->LoadShaderPartFromFile("shaders/Post/dof_calculation_frag.glsl", GL_FRAGMENT_SHADER);
     _shaders[index]->Link();
 
@@ -57,7 +57,7 @@ void DepthOfFieldEffect::Init(unsigned width, unsigned height)
 
 }
 
-void DepthOfFieldEffect::ApplyEffect(PostEffect* buffer)
+void DepthOfFieldEffect::ApplyEffect(PostEffect* buffer) 
 {
     BindShader(0);
 
@@ -65,12 +65,26 @@ void DepthOfFieldEffect::ApplyEffect(PostEffect* buffer)
 
     _buffers[0]->RenderToFSQ();
 
+    BindShader(1);
+    _shaders[1]->SetUniform("u_lightPos", _lightPos); 
+    _shaders[1]->SetUniform("u_colour", _colour);
+    _shaders[1]->SetUniform("u_depthEye", _threshold);
+
+    buffer->BindColorAsTexture(0, 0, 0);
+
+    _buffers[1]->RenderToFSQ();
+
+    buffer->UnbindTexture(0);
+
+    UnbindShader();
+
     for (unsigned i = 0; i < _passes; i++)
     {
         //Horizontal pass 
         BindShader(2);
 
-        BindColorAsTexture(1, 0, 0);
+        BindColorAsTexture(0, 0, 0);
+       // BindColorAsTexture(1, 0, 0);
 
         _buffers[2]->RenderToFSQ();
 
@@ -81,7 +95,8 @@ void DepthOfFieldEffect::ApplyEffect(PostEffect* buffer)
         //Vertical pass
         BindShader(3);
 
-        BindColorAsTexture(2, 0, 0);
+        BindColorAsTexture(0, 0, 0);
+        //BindColorAsTexture(2, 0, 0);
 
         _buffers[3]->RenderToFSQ(); 
 
@@ -89,7 +104,7 @@ void DepthOfFieldEffect::ApplyEffect(PostEffect* buffer)
 
         UnbindShader();
     }
-    buffer->UnbindTexture(1);
+   // buffer->UnbindTexture(1);
     buffer->UnbindTexture(0);
 
     UnbindShader();

@@ -25,6 +25,8 @@ private:
 	int _passes = 100;
 	float _threshold = 0.1f;
 	//float _threshold = 0.1f;
+	glm::vec4 _lightPos = glm::vec4(0);
+	glm::vec4 _colour = glm::vec4(0);
 	glm::vec2 _pixelSize;
 	float _blurValues[5] = { 0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216 }; 
 
