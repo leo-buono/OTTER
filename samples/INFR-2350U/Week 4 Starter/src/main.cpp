@@ -96,6 +96,7 @@ int main() {
 		GreyscaleEffect* greyscaleEffect;
 		ColorCorrectEffect* colorCorrectEffect;
 		BloomEffect* bloomEffect;
+		DepthOfFieldEffect* dofEffect;
 		
 
 		// We'll add some ImGui controls to control our shader
@@ -226,6 +227,17 @@ int main() {
 					if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 1.0f))
 					{
 						temp->SetThreshold(threshold);
+					}
+				}
+				if (activeEffect == 4)
+				{
+					DepthOfFieldEffect* temp = (DepthOfFieldEffect*)effects[activeEffect];
+					float pixelDist = temp->GetThreshold();
+
+					ImGui::Text("Active Effect: DOF");
+					if (ImGui::SliderFloat("Pixel Distance", &pixelDist, 0.0f, 100.0f))
+					{
+						temp->SetThreshold(pixelDist);
 					}
 				}
 			}
@@ -513,6 +525,13 @@ int main() {
 			bloomEffect->Init(width, height);
 		}
 		effects.push_back(bloomEffect);
+
+		GameObject dofOBJ = scene->CreateEntity("DOF Effect");
+		{
+			dofEffect = &dofOBJ.emplace<DepthOfFieldEffect>();
+			dofEffect->Init(width, height);
+		}
+		effects.push_back(dofEffect);
 
 
 		#pragma endregion 
