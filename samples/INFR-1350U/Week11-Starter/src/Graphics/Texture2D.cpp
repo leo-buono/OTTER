@@ -59,7 +59,7 @@ void Texture2D::LoadData(const Texture2DData::sptr& data) {
 	glTextureSubImage2D(_handle, 0, 0, 0, _description.Width, _description.Height, *data->GetFormat(), *data->GetPixelType(), data->GetDataPtr());
 
 	if (_description.GenerateMipMaps) {
-		glGenerateTextureMipmap(_handle);
+		glGenerateTextureMipmap(_handle); 
 	}
 }
 

@@ -83,6 +83,7 @@ int main() {
 		IlluminationBuffer* illuminationBuffer;
 		GBuffer* gBuffer;
 
+
 		//Post Processing Effects
 		int activeEffect = 0;
 		std::vector<PostEffect*> effects;
@@ -359,11 +360,11 @@ int main() {
 			skybox->LoadShaderPartFromFile("shaders/skybox-shader.frag.glsl", GL_FRAGMENT_SHADER);
 			skybox->Link();
 
-			ShaderMaterial::sptr skyboxMat = ShaderMaterial::Create();
-			skyboxMat->Shader = skybox;  
-			skyboxMat->Set("s_Environment", environmentMap);
-			skyboxMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0))));
-			skyboxMat->RenderLayer = 100;
+		ShaderMaterial::sptr skyboxMat = ShaderMaterial::Create();
+		skyboxMat->Shader = skybox;  
+		skyboxMat->Set("s_Environment", environmentMap);
+		skyboxMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1, 0, 0))));
+		skyboxMat->RenderLayer = 100;
 
 			MeshBuilder<VertexPosNormTexCol> mesh;
 			MeshFactory::AddIcoSphere(mesh, glm::vec3(0.0f), 1.0f);
@@ -383,7 +384,12 @@ int main() {
 			// how this is implemented. Note that the ampersand here is capturing the variables within
 			// the scope. If you wanted to do some method on the class, your best bet would be to give it a method and
 			// use std::bind
+			
 			keyToggles.emplace_back(GLFW_KEY_T, [&]() { cameraObject.get<Camera>().ToggleOrtho(); });
+			
+			//togglers
+			keyToggles.emplace_back(GLFW_KEY_F1, [&]() { drawGbuffer = !drawGbuffer; });
+			keyToggles.emplace_back(GLFW_KEY_F2, [&]() { drawIllumBuffer = !drawIllumBuffer; });
 
 			//Toggle drawing gbuffer
 			keyToggles.emplace_back(GLFW_KEY_F1, [&]() { drawGBuffer = !drawGBuffer; });
@@ -465,7 +471,6 @@ int main() {
 			illuminationBuffer->Clear();
 			shadowBuffer->Clear();
 			gBuffer->Clear();
-
 
 			glClearColor(1.0f, 1.0f, 1.0f, 0.3f);
 			glEnable(GL_DEPTH_TEST);

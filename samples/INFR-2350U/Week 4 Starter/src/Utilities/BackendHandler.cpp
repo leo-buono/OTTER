@@ -9,7 +9,7 @@ void BackendHandler::GlDebugMessage(GLenum source, GLenum type, GLuint id, GLenu
 	{
 		std::string sourceTxt;
 		switch (source) {
-		case GL_DEBUG_SOURCE_API: sourceTxt = "DEBUG"; break;
+		case GL_DEBUG_SOURCE_API: sourceTxt = "DEBUG"; break; 
 		case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceTxt = "WINDOW"; break;
 		case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceTxt = "SHADER"; break;
 		case GL_DEBUG_SOURCE_THIRD_PARTY: sourceTxt = "THIRD PARTY"; break;
