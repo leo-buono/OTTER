@@ -21,34 +21,34 @@ struct DirectionalLight
 	float _shadowBias;
 };
 
-layout (std140, binding = 0) uniform u_Lights
+layout (std140, binding = 0) uniform u_Light
 {
-	DirectionalLight ambience;
+	DirectionalLight light;
 };
 
 layout (binding = 0) uniform sampler2D s_albedoTex;
 layout (binding = 4) uniform sampler2D s_lightAccumTex;
-layout(binding = 5) uniform sampler2D s_skyBox;
+layout (binding = 5) uniform sampler2D s_skybox;
 
 out vec4 frag_color;
 
 void main() 
 {
-    //Albedo
-    vec4 textureColor = texture(s_albedoTex, inUV);
-    //light
-    vec4 lightAccum = texture(s_lightAccumTex, inUV);
+	//Albedo
+	vec4 textureColor = texture(s_albedoTex, inUV);
+	//Lights
+	vec4 lightAccum = texture(s_lightAccumTex, inUV);
+	//Skybox
+	vec4 skybox = texture(s_skybox, inUV);
 
-    vec4 skybox = texture(s_skyBox, inUV);
+	// Lecture 5
+	vec3 ambient = light._lightAmbientPow * light._ambientCol.rgb;
 
-    //Ambient calculation
-    vec3 ambient = ambience._lightAmbientPow * ambience._ambientCol.rgb; 
+	//The result of all the lighting
+	vec3 result = (ambient + lightAccum.rgb) * textureColor.rgb;
 
-    //result
-    vec3 result = (ambient + lightAccum.rgb) * textureColor.rgb;
-    //add skybox
-    result = result * skybox.rgb;
+	result = result * skybox.rgb;
 
-    //light accum
-    frag_color = vec4(result, 1.0);
+	//The light accumulation
+	frag_color = vec4(result, 1.0);
 }

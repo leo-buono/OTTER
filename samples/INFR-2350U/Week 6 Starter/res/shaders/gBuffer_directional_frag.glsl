@@ -21,23 +21,25 @@ struct DirectionalLight
 	float _shadowBias;
 };
 
-layout (std140, binding = 0) uniform u_Lights
+layout (std140, binding = 0) uniform u_Light
 {
 	DirectionalLight sun;
 };
 
 layout (binding = 30) uniform sampler2D s_ShadowMap;
 
-layout(binding = 0) uniform sampler2D s_albedoTex;
-layout(binding = 1) uniform sampler2D s_normalsTex;
-layout(binding = 2) uniform sampler2D s_specularTex;
-layout(binding = 3) uniform sampler2D s_positionTex;
-layout(binding = 4) uniform sampler2D s_lightAccumTex;
+layout (binding = 0) uniform sampler2D s_albedoTex;
+layout (binding = 1) uniform sampler2D s_normalsTex;
+layout (binding = 2) uniform sampler2D s_specularTex;
+layout (binding = 3) uniform sampler2D s_positionTex;
+
+layout (binding = 4) uniform sampler2D s_lightAccumTex;
 
 uniform mat4 u_LightSpaceMatrix;
-uniform vec3 u_CamPos;
+uniform vec3  u_CamPos;
 
 out vec4 frag_color;
+
 float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 {
 	//Perspective division
@@ -59,17 +61,19 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias)
 	return shadow;
 }
 
-void main() {
-    //albedo
-    vec4 textureColor = texture(s_albedoTex, inUV);
-    //normals
-    vec3 inNormal = (normalize(texture(s_normalsTex, inUV).rgb) * 2.0) - 1.0;
+void main() 
+{
+	//Albedo
+	vec4 textureColor = texture(s_albedoTex, inUV);
+	//Normals
+	vec3 inNormal = (normalize(texture(s_normalsTex, inUV).rgb) * 2.0) - 1.0;
+	//Specular
+	float texSpec = texture(s_specularTex, inUV).r;
+	//Positions
+	vec3 fragPos = texture(s_positionTex, inUV).rgb;
 
-    //specular
-    float texSpec = texture(s_specularTex, inUV).r;
-    //positions
-    vec3 fragPos = texture(s_positionTex, inUV).rgb;
-
+	//Lights
+	vec4 lightAccum = texture(s_lightAccumTex, inUV);
 
 	// Diffuse
 	vec3 N = normalize(inNormal);
@@ -81,21 +85,26 @@ void main() {
 	vec3 viewDir  = normalize(u_CamPos - fragPos);
 	vec3 h        = normalize(lightDir + viewDir);
 
+	// Get the specular power from the specular map
 	float spec = pow(max(dot(N, h), 0.0), 4.0); // Shininess coefficient (can be a uniform)
 	vec3 specular = sun._lightSpecularPow * texSpec * spec * sun._lightCol.xyz; // Can also use a specular color
 
-    vec4 fragPosLightSpace = u_LightSpaceMatrix * vec4(fragPos, 1.0);
+	// float bias = max(0.05 * (1.0 - dot(N, lightDir)), sun._shadowBias); 
+
+	vec4 fragPosLightSpace = u_LightSpaceMatrix * vec4(fragPos, 1.0);
 	float shadow = ShadowCalculation(fragPosLightSpace, sun._shadowBias);
 
+	//The result of all the lighting
 	vec3 result = (
-		(sun._ambientPow * sun._ambientCol.xyz) + // global ambient light
-		(1.0 - shadow) * //Shadow value
-		(diffuse + specular)); // Object color
-    if(textureColor.a < 0.31)
-    {
-        result = vec3(1.0, 1.0, 1.0);
-    }
+		(sun._ambientPow * sun._ambientCol.xyz)
+		+ (1.0 - shadow) * //Shadow value
+		(diffuse));
 
+	if (textureColor.a < 0.5)
+	{
+		result = vec3(1.0, 1.0, 1.0);
+	}
 
+	//The light accumulation
 	frag_color = vec4(result, 1.0);
 }

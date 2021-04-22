@@ -2,69 +2,81 @@
 
 void IlluminationBuffer::Init(unsigned width, unsigned height)
 {
-	//composite buffer
-	int index = int((_buffers.size()));
+	//Ambient + Illum Buffer
+	int index = int(_buffers.size());
 	_buffers.push_back(new Framebuffer());
 	_buffers[index]->AddColorTarget(GL_RGBA8);
 	_buffers[index]->AddDepthTarget();
 	_buffers[index]->Init(width, height);
 
-	//illuum buffer
-	index = int((_buffers.size()));
+	//IllumBuf 1
+	index = int(_buffers.size());
 	_buffers.push_back(new Framebuffer());
 	_buffers[index]->AddColorTarget(GL_RGBA8);
 	_buffers[index]->AddDepthTarget();
 	_buffers[index]->Init(width, height);
 
-	//directional gBuffer shader
+	//Loads the directional shader
 	index = int(_shaders.size());
-	_shaders.push_back(Shader::Create());	
+	_shaders.push_back(Shader::Create());
 	_shaders[index]->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
 	_shaders[index]->LoadShaderPartFromFile("shaders/gBuffer_directional_frag.glsl", GL_FRAGMENT_SHADER);
 	_shaders[index]->Link();
 
+	//Loads the point light shader
 	index = int(_shaders.size());
 	_shaders.push_back(Shader::Create());
 	_shaders[index]->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
 	_shaders[index]->LoadShaderPartFromFile("shaders/gBuffer_ambient_frag.glsl", GL_FRAGMENT_SHADER);
 	_shaders[index]->Link();
 
+	//Allocate the memory for the buffers
 	_sunBuffer.AllocateMemory(sizeof(DirectionalLight));
 
 	if (_sunEnabled)
 	{
+		//We are just assuming there's a sun
 		_sunBuffer.SendData(reinterpret_cast<void*>(&_sun), sizeof(DirectionalLight));
 	}
 
 	PostEffect::Init(width, height);
-
 }
 
 void IlluminationBuffer::ApplyEffect(GBuffer* gBuffer)
 {
-	_sunBuffer.SendData(reinterpret_cast<void*>(&_sun), sizeof(DirectionalLight));
+	glDisable(GL_DEPTH_TEST);
+	
+	//If the sun is enabled
 	if (_sunEnabled)
 	{
+		//Binds the directional light shader
 		_shaders[Lights::DIRECTIONAL]->Bind();
 		_shaders[Lights::DIRECTIONAL]->SetUniformMatrix("u_LightSpaceMatrix", _lightSpaceViewProj);
 		_shaders[Lights::DIRECTIONAL]->SetUniform("u_CamPos", _camPos);
 
+		//Send the directional light data to the uniform buffer
+		_sunBuffer.SendData(reinterpret_cast<void*>(&_sun), sizeof(DirectionalLight));
 		_sunBuffer.Bind(0);
 
 		gBuffer->BindLighting();
+
+		//Binds and draws to the illumination buffer
 		_buffers[1]->RenderToFSQ();
+
 		gBuffer->UnbindLighting();
 
+		//Unbinds the uniform buffer
 		_sunBuffer.Unbind(0);
 
-		_shaders[Lights::DIRECTIONAL]->UnBind();	
+		//Unbind directional light shader
+		_shaders[Lights::DIRECTIONAL]->UnBind();
 	}
 
-
-	//bind ambiet shader
+	//By the end whatever is readBuf is our final buffer
 	_shaders[Lights::AMBIENT]->Bind();
-
-	//send the directional light data
+	
+	//Send the directional light data to the uniform buffer
+	_sunBuffer.SendData(reinterpret_cast<void*>(&_sun), sizeof(DirectionalLight));
 	_sunBuffer.Bind(0);
 
 	gBuffer->BindLighting();
@@ -72,15 +84,17 @@ void IlluminationBuffer::ApplyEffect(GBuffer* gBuffer)
 	_buffers[0]->BindColorAsTexture(0, 5);
 
 	_buffers[0]->RenderToFSQ();
+
 	_buffers[0]->UnbindTexture(5);
 	_buffers[1]->UnbindTexture(4);
 	gBuffer->UnbindLighting();
 
+	//Unbinds the uniform buffer
 	_sunBuffer.Unbind(0);
 
 	_shaders[Lights::AMBIENT]->UnBind();
 
-
+	glEnable(GL_DEPTH_TEST);
 }
 
 void IlluminationBuffer::DrawIllumBuffer()
