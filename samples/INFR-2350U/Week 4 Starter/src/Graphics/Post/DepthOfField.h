@@ -3,7 +3,7 @@
 #include "Graphics/Post/PostEffect.h" 
 #include <GLM/glm.hpp>
 
-class BloomEffect : public PostEffect
+class DepthOfFieldEffect : public PostEffect
 {
 public:
 	//Initializes framebuffer
@@ -22,7 +22,7 @@ public:
 
 private:
 	
-	int _passes = 10;
+	int _passes = 100;
 	float _threshold = 0.1f;
 	//float _threshold = 0.1f;
 	glm::vec2 _pixelSize;

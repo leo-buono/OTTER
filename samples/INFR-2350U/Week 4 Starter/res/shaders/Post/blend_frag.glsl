@@ -14,5 +14,6 @@ void main()
     vec4 hdrColor = texture(scene, inUV);      
     vec4 bloomColor = texture(bloomBlur, inUV);
     
-    frag_color = 1.0 - (1.0 - hdrColor) * (1.0 - bloomColor);
+    frag_color = 1.0 - (1.0 - hdrColor) * (1.0 - bloomColor); 
+    //frag_color = bloomColor;
 }  

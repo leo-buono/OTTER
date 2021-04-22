@@ -15,10 +15,10 @@ void main()
 
 
     float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > u_threshold)
+    //if(brightness > u_threshold)
         frag_color = vec4(u_strength * color.rgb, 1.0);
-    else
-    {
-       frag_color = vec4(0.0, 0.0, 0.0, 1.0);
-    }
+   // else
+    //{
+      //frag_color = vec4(0.0, 0.0, 0.0, 1.0);
+    //}
 }
