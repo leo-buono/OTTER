@@ -95,7 +95,7 @@ int main() {
 		SepiaEffect* sepiaEffect;
 		GreyscaleEffect* greyscaleEffect;
 		ColorCorrectEffect* colorCorrectEffect;
-		BloomEffect* bloomEffect;
+		//BloomEffect* bloomEffect;
 		DepthOfFieldEffect* dofEffect;
 		
 
@@ -218,31 +218,51 @@ int main() {
 						temp->SetLUT(LUT3D(std::string(input)));
 					}
 				}
-				if (activeEffect == 3)
-				{
-					BloomEffect* temp = (BloomEffect*)effects[activeEffect]; 
-					float threshold = temp->GetThreshold();
+				//if (activeEffect == 4)
+				//{
+				//	/*BloomEffect* temp = (BloomEffect*)effects[activeEffect]; 
+				//	float threshold = temp->GetThreshold();*/
 
-					ImGui::Text("Active Effect: Bloom");
-					if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 1.0f))
-					{
-						temp->SetThreshold(threshold);
-					}
-				}
-				if (activeEffect == 4)
+				//	ImGui::Text("Active Effect: Bloom");
+				//	/*if (ImGui::SliderFloat("Threshold", &threshold, 0.0f, 1.0f))
+				//	{
+				//		temp->SetThreshold(threshold);
+				//	}*/
+				//}
+				if (activeEffect == 3)
 				{
 					DepthOfFieldEffect* temp = (DepthOfFieldEffect*)effects[activeEffect];
 					float pixelDist = temp->GetThreshold();
+					float focalDist = temp->GetFocalDist();
+					float focalLength = temp->GetFocalLength();
+					float aperture = temp->GetAperture();
+					float maxCoC = temp->GetMaxCoC();
 
 					ImGui::Text("Active Effect: DOF");
-					if (ImGui::SliderFloat("Pixel Distance", &pixelDist, 0.0f, 100.0f))
+					if (ImGui::SliderFloat("Pixel Distance", &pixelDist, 0.0f, 50.0f))  
 					{
 						temp->SetThreshold(pixelDist);
+					}
+					if (ImGui::SliderFloat("Focal Distance", &focalDist, 0.0f, 1.0f))
+					{
+						temp->SetFocalDistance(focalDist);
+					}
+					if (ImGui::SliderFloat("Focal Length", &focalLength, 0.0f, 0.5f))
+					{
+						temp->SetFocalLength(focalLength);
+					}
+					if (ImGui::SliderFloat("Aperture", &aperture, 0.0f, 2.5f))
+					{
+						temp->SetAperture(aperture);
+					}
+					if (ImGui::SliderFloat("Max CoC", &maxCoC, 0.0f, 10.0f))
+					{
+						temp->SetMaxCoC(maxCoC);
 					}
 				}
 			}
 			
-			if (ImGui::CollapsingHeader("Environment generation"))
+			if (ImGui::CollapsingHeader("Environment generation")) 
 			{
 				if (ImGui::Button("Regenerate Environment", ImVec2(200.0f, 40.0f)))
 				{
@@ -518,13 +538,13 @@ int main() {
 			colorCorrectEffect->Init(width, height);
 		}
 		effects.push_back(colorCorrectEffect);
-
+/*
 		GameObject bloomEffectObject = scene->CreateEntity("Bloom Effect");
 		{
 			bloomEffect = &bloomEffectObject.emplace<BloomEffect>();
 			bloomEffect->Init(width, height);
 		}
-		effects.push_back(bloomEffect);
+		effects.push_back(bloomEffect);*/
 
 		GameObject dofOBJ = scene->CreateEntity("DOF Effect");
 		{

@@ -20,10 +20,29 @@ public:
 	void SetBlur(float x[5]); 
 	float* GetBlur();
 
+	void SetFocalDistance(float x);
+	float GetFocalDist();
+
+
+	void SetFocalLength(float x);
+	float GetFocalLength();
+
+
+	void SetAperture(float x);
+	float GetAperture();
+
+
+	void SetMaxCoC(float x);
+	float GetMaxCoC();
+
 private:
 	
-	int _passes = 100;
+	int _passes = 10;
 	float _threshold = 0.1f;
+	float _S1 = 20.0f;
+	float _F = 0.0303f;
+	float _A = 0.6062f;
+	float _MAXCoC = 1.0f;
 	//float _threshold = 0.1f;
 	glm::vec4 _lightPos = glm::vec4(0);
 	glm::vec4 _colour = glm::vec4(0);

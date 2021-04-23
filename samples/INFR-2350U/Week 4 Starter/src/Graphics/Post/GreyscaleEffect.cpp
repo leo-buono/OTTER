@@ -12,16 +12,15 @@ void GreyscaleEffect::Init(unsigned width, unsigned height)
     index = int(_shaders.size());
     _shaders.push_back(Shader::Create());
     _shaders[index]->LoadShaderPartFromFile("shaders/passthrough_vert.glsl", GL_VERTEX_SHADER);
-    _shaders[index]->LoadShaderPartFromFile("shaders/Post/greyscale_frag.glsl", GL_FRAGMENT_SHADER);
+    _shaders[index]->LoadShaderPartFromFile("shaders/passthrough_frag.glsl", GL_FRAGMENT_SHADER);
     _shaders[index]->Link();
 }
 
 void GreyscaleEffect::ApplyEffect(PostEffect* buffer)
 {
     BindShader(0);
-    _shaders[0]->SetUniform("u_Intensity", _intensity);
 
-    buffer->BindColorAsTexture(0, 0, 0);
+    buffer->BindDepthAsTexture(0, 0);
 
     _buffers[0]->RenderToFSQ();
 

@@ -388,8 +388,8 @@ int main() {
 			keyToggles.emplace_back(GLFW_KEY_T, [&]() { cameraObject.get<Camera>().ToggleOrtho(); });
 			
 			//togglers
-			keyToggles.emplace_back(GLFW_KEY_F1, [&]() { drawGbuffer = !drawGbuffer; });
-			keyToggles.emplace_back(GLFW_KEY_F2, [&]() { drawIllumBuffer = !drawIllumBuffer; });
+			//keyToggles.emplace_back(GLFW_KEY_F1, [&]() { drawGbuffer = !drawGbuffer; });
+			//keyToggles.emplace_back(GLFW_KEY_F2, [&]() { drawIllumBuffer = !drawIllumBuffer; });
 
 			//Toggle drawing gbuffer
 			keyToggles.emplace_back(GLFW_KEY_F1, [&]() { drawGBuffer = !drawGBuffer; });
@@ -591,7 +591,7 @@ int main() {
 			}
 
 			//effects[activeEffect]->ApplyEffect(basicEffect);
-			
+			//
 			//effects[activeEffect]->DrawToScreen();
 			
 			// Draw our ImGui content
