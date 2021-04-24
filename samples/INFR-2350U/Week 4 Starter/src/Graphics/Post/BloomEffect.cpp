@@ -132,7 +132,7 @@ void BloomEffect::ApplyEffect(PostEffect* buffer)
     }
     BindShader(4);
 
-	buffer->BindColorAsTexture(0, 0, 0);
+	buffer->BindColorAsTexture(0, 0, 0); 
 	BindColorAsTexture(1, 0, 1);
 
 	_buffers[0]->RenderToFSQ();

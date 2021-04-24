@@ -5,7 +5,7 @@
 #include <json.hpp>
 #include <fstream>
 
-//TODO: New for this tutorial
+//TODO: New for this tutorial 
 #include <DirectionalLight.h>
 #include <PointLight.h>
 #include <UniformBuffer.h>

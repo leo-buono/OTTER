@@ -80,7 +80,7 @@ public:
 	/// </summary>
 	const glm::vec3& GetUp() const { return _up; }
 
-	float GetFovDegrees() const { return glm::degrees(_fovRadians); }
+	float GetFovDegrees() const { return glm::degrees(_fovRadians); } 
 	
 	/// <summary>
 	/// Gets the view matrix for this camera
@@ -93,7 +93,7 @@ public:
 	/// <summary>
 	/// Gets the combined view-projection matrix for this camera, calculating if needed
 	/// </summary>
-	const glm::mat4& GetViewProjection() const;
+	const glm::mat4& GetViewProjection() const; 
 	/// <summary>
 	/// Gets the combined view-projection matrix for this camera without any translations applied (ex: for skyboxes), calculating if needed
 	/// </summary>

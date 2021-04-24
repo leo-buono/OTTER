@@ -65,22 +65,22 @@ bool Shader::LoadShaderPart(const char* source, GLenum type)
 
 bool Shader::LoadShaderPartFromFile(const char* path, GLenum type) {
 	std::ifstream file(path);
-	if (!file.is_open()) {
+	if (!file.is_open()) { 
 		LOG_ERROR("File not found: {}", path);
-		throw std::runtime_error("File not found, see logs for more information");
+		throw std::runtime_error("File not found, see logs for more information"); 
 	}
 	std::stringstream stream;
 	stream << file.rdbuf();
 	bool result = LoadShaderPart(stream.str().c_str(), type);   
-	file.close(); 
+	file.close();    
 	return result; 
-}
+}   
 
-bool Shader::Link() 
-{  
-	LOG_ASSERT(_vs != 0 && _fs != 0, "Must attach both a vertex and fragment shader!");        
-	  
-	// Attach our two shaders
+bool Shader::Link()     
+{      
+	LOG_ASSERT(_vs != 0 && _fs != 0, "Must attach both a vertex and fragment shader!");         
+	    
+	// Attach our two shaders      
 	glAttachShader(_handle, _vs);
 	glAttachShader(_handle, _fs);
 
@@ -89,7 +89,7 @@ bool Shader::Link()
 
 	// Remove shader parts to save space (we can do this since we only needed the shader parts to compile an actual shader program)
 	glDetachShader(_handle, _vs);
-	glDeleteShader(_vs);
+	glDeleteShader(_vs);  
 	glDetachShader(_handle, _fs);
 	glDeleteShader(_fs);
 
@@ -193,4 +193,4 @@ int Shader::GetUniformLocation(const std::string& name) {
 	}
 
 	return result;
-}
+} 

@@ -237,27 +237,42 @@ int main() {
 					float focalLength = temp->GetFocalLength();
 					float aperture = temp->GetAperture();
 					float maxCoC = temp->GetMaxCoC();
+					float farPlane = temp->GetFarZ();
+					float nearPlane = temp->GetNearZ();
+					float planeFocus = temp->GetPlaneInFocus();
 
 					ImGui::Text("Active Effect: DOF");
-					if (ImGui::SliderFloat("Pixel Distance", &pixelDist, 0.0f, 50.0f))  
+					if (ImGui::SliderFloat("Lerp", &pixelDist, 0.0f, 1.0f))  
 					{
-						temp->SetThreshold(pixelDist);
+						temp->SetThreshold(pixelDist);  
 					}
-					if (ImGui::SliderFloat("Focal Distance", &focalDist, 0.0f, 1.0f))
-					{
-						temp->SetFocalDistance(focalDist);
-					}
-					if (ImGui::SliderFloat("Focal Length", &focalLength, 0.0f, 0.5f))
+					//if (ImGui::SliderFloat("Focal Distance", &focalDist, 0.0f, 20.0f))
+					//{
+					//	temp->SetFocalDistance(focalDist);
+					//}
+					if (ImGui::SliderFloat("Focal Length", &focalLength, 0.0f, 0.5f)) 
 					{
 						temp->SetFocalLength(focalLength);
 					}
 					if (ImGui::SliderFloat("Aperture", &aperture, 0.0f, 2.5f))
 					{
 						temp->SetAperture(aperture);
-					}
-					if (ImGui::SliderFloat("Max CoC", &maxCoC, 0.0f, 10.0f))
+					}  
+					//if (ImGui::SliderFloat("Max CoC", &maxCoC, 0.0f, 10.0f))
+					//{
+					//	temp->SetMaxCoC(maxCoC);
+					//}
+					//if (ImGui::SliderFloat("Far Z", &farPlane, 0.0f, 10.0f))
+					//{
+					//	temp->SetFarZ(farPlane);
+					//}
+					//if (ImGui::SliderFloat("Near Z", &nearPlane, 0.0f, 10.0f))
+					//{
+					//	temp->SetNearZ(nearPlane);
+					//}
+					if (ImGui::SliderFloat("Plane Of Focus", &planeFocus, 0.0f, 10.0f))
 					{
-						temp->SetMaxCoC(maxCoC);
+						temp->SetPlaneInFocus(planeFocus);
 					}
 				}
 			}

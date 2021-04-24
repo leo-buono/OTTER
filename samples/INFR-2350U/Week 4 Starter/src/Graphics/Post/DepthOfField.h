@@ -30,19 +30,35 @@ public:
 
 	void SetAperture(float x);
 	float GetAperture();
-
+	 
 
 	void SetMaxCoC(float x);
 	float GetMaxCoC();
 
+	void SetFarZ(float x);
+	float GetFarZ();
+
+	void SetNearZ(float x);
+	float GetNearZ();
+
+	void SetPlaneInFocus(float x);
+	float GetPlaneInFocus();
+
 private:
 	
+	float _width;
+	float _height;
+
+
 	int _passes = 10;
 	float _threshold = 0.1f;
-	float _S1 = 20.0f;
+	float _S1 = 20.0f;  
 	float _F = 0.0303f;
 	float _A = 0.6062f;
 	float _MAXCoC = 1.0f;
+	float _zFar = 50.f;
+	float _zNear = 0.1f;
+	float _planeInFocus = 10.f;
 	//float _threshold = 0.1f;
 	glm::vec4 _lightPos = glm::vec4(0);
 	glm::vec4 _colour = glm::vec4(0);
